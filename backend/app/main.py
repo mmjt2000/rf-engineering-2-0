@@ -21,6 +21,7 @@ from app.websocket.manager import manager
 from app.routers import cells as cells_router
 from app.routers import son as son_router
 from app.routers import export as export_router
+from app.routers import auth as auth_router
 
 
 # ============================================================
@@ -61,7 +62,8 @@ app.add_middleware(
 # ============================================================
 app.include_router(cells_router.router)
 app.include_router(son_router.router)
-app.include_router(export_router.router)
+app.include_router
+app.include_router(auth_router.router)
 
 
 # ============================================================

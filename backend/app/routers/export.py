@@ -1,26 +1,29 @@
 """
-Routes API : export CSV des KPIs.
+Routes API : export CSV (protegees).
 """
 import csv
 import io
 from datetime import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from app.data.cells import CELLS
 from app.data.kpi import gen_kpi
+from app.dependencies import get_current_tenant_id, require_feature
 
 router = APIRouter(prefix="/api/export", tags=["export"])
 
 
 @router.get("/csv")
-def export_csv():
-    """Exporte tous les KPIs dans un fichier CSV téléchargeable."""
+def export_csv(
+    tenant_id: int = Depends(get_current_tenant_id),
+    _ = Depends(require_feature("export_csv")),
+):
+    """Export CSV des KPIs (feature 'export_csv')."""
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
 
-    # En-tête
     writer.writerow([
         "Cell ID", "Cluster", "Techno", "Band", "PCI",
         "Latitude", "Longitude", "Azimuth", "Tilt_E", "Tilt_M",
@@ -29,7 +32,6 @@ def export_csv():
         "HO_SR (%)", "RSRP (dBm)", "Timestamp"
     ])
 
-    # Données : croisement config cellule + KPI généré
     for cell in CELLS:
         k = gen_kpi(cell)
         writer.writerow([

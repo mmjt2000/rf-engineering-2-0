@@ -60,3 +60,12 @@ SON_EVENTS_API_LIMIT = 40  # Events retournés par /api/son/events
 # ============================================================
 from pathlib import Path
 FRONTEND_DIR = Path(__file__).parent.parent.parent / "frontend"
+
+# ============================================================
+#  JWT / AUTHENTIFICATION
+# ============================================================
+import os
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "change-moi-en-production-avec-une-cle-secrete-longue")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 heures

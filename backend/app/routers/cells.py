@@ -1,26 +1,40 @@
-from fastapi import APIRouter
+"""
+Routes API : cellules, KPIs, heatmap, drive test (protegees par tenant).
+"""
+from fastapi import APIRouter, Depends
 
 from app.data.cells import CELLS, CELLS_BY_ID
 from app.data.kpi import gen_kpi
 from app.data.drivetest import DRIVETEST
 from app.data.heatmap import get_heatmap
 from app.data import outages as outages_module
+from app.dependencies import get_current_tenant_id, require_feature
 
 router = APIRouter(prefix="/api", tags=["cells"])
 
 
 @router.get("/cells")
-def get_cells():
-    return {"count": len(CELLS), "cells": CELLS}
+def get_cells(tenant_id: int = Depends(get_current_tenant_id)):
+    """Liste des cellules du tenant (auth obligatoire)."""
+    return {"tenant_id": tenant_id, "count": len(CELLS), "cells": CELLS}
 
 
 @router.get("/kpi/summary")
-def kpi_summary():
+def kpi_summary(
+    tenant_id: int = Depends(get_current_tenant_id),
+    _ = Depends(require_feature("kpis_basic")),
+):
+    """Snapshot KPI de toutes les cellules."""
     return [gen_kpi(c) for c in CELLS]
 
 
 @router.get("/kpi/{cell_id}")
-def kpi_cell(cell_id: str):
+def kpi_cell(
+    cell_id: str,
+    tenant_id: int = Depends(get_current_tenant_id),
+    _ = Depends(require_feature("kpis_basic")),
+):
+    """KPIs d'une cellule specifique."""
     c = CELLS_BY_ID.get(cell_id)
     if not c:
         return {"error": "cell not found"}
@@ -28,24 +42,40 @@ def kpi_cell(cell_id: str):
 
 
 @router.get("/drivetest")
-def drivetest():
+def drivetest(
+    tenant_id: int = Depends(get_current_tenant_id),
+    _ = Depends(require_feature("kpis_basic")),
+):
+    """Parcours drive test simule."""
     return DRIVETEST
 
 
 @router.get("/heatmap")
-def heatmap():
+def heatmap(
+    tenant_id: int = Depends(get_current_tenant_id),
+    _ = Depends(require_feature("heatmap")),
+):
+    """Grille RSRP interpolee (feature 'heatmap')."""
     pts = get_heatmap()
     return {"count": len(pts), "points": pts}
 
 
 @router.get("/outages")
-def get_outages():
+def get_outages(
+    tenant_id: int = Depends(get_current_tenant_id),
+    _ = Depends(require_feature("kpis_basic")),
+):
+    """Liste des cellules en panne."""
     all_outages = outages_module.get_all_outages()
     return {"outages": all_outages, "count": len(all_outages)}
 
 
 @router.post("/simulate-outage")
-def simulate_outage():
+def simulate_outage(
+    tenant_id: int = Depends(get_current_tenant_id),
+    _ = Depends(require_feature("son")),
+):
+    """Simule la panne d'une cellule (feature 'son')."""
     import random
     candidates = [c for c in CELLS if not outages_module.is_outage(c["cell_id"])]
     if not candidates:
@@ -67,7 +97,12 @@ def simulate_outage():
 
 
 @router.post("/resolve-outage/{cell_id}")
-def resolve_outage(cell_id: str):
+def resolve_outage(
+    cell_id: str,
+    tenant_id: int = Depends(get_current_tenant_id),
+    _ = Depends(require_feature("son")),
+):
+    """Resout manuellement la panne d'une cellule."""
     if outages_module.resolve_outage(cell_id):
         from datetime import datetime, timezone
         evt = {
