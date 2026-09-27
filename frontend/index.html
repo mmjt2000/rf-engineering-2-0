@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RF Engineering 2.0 — Live Monitoring Haïti</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root{
+    --bg:#070b14; --panel:rgba(15,21,36,.92); --panel2:#141b2e;
+    --accent:#00d4ff; --accent2:#7c3aed; --ok:#10b981;
+    --warn:#f59e0b; --orange:#f97316; --danger:#ef4444;
+    --text:#e6edf7; --muted:#94a3b8; --border:#1f2a44;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Segoe UI',system-ui,sans-serif;
+    background:var(--bg); color:var(--text);
+  }
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:1000;
+    height:58px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px;background:rgba(7,11,20,.94);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  header h1{
+    font-size:1.05rem;font-weight:700;
+    background:linear-gradient(90deg,#fff,var(--accent));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hdr-right{display:flex;align-items:center;gap:20px;font-size:.82rem;color:var(--muted)}
+  .live{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:5px 12px;border:1px solid var(--ok);border-radius:50px;
+    color:var(--ok);font-weight:600;font-size:.72rem;letter-spacing:1px;
+  }
+  .live .dot{
+    width:8px;height:8px;border-radius:50%;background:var(--ok);
+    animation:pulse 1.4s infinite;
+  }
+  @keyframes pulse{50%{opacity:.3}}
+  .live.offline{border-color:var(--danger);color:var(--danger)}
+  .live.offline .dot{background:var(--danger);animation:none}
+
+  #map{
+    position:fixed;top:58px;left:0;right:0;bottom:0;
+    background:#050912;z-index:1;
+  }
+  .leaflet-container{background:#050912}
+
+  .panel{
+    position:fixed;z-index:800;
+    background:var(--panel);backdrop-filter:blur(14px);
+    border:1px solid var(--border);border-radius:14px;
+    padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.5);
+    transition:.3s;
+  }
+  .panel h3{
+    font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;
+    color:var(--accent);margin-bottom:12px;display:flex;
+    justify-content:space-between;align-items:center;
+  }
+  .panel h3 span{color:var(--muted);font-size:.68rem;letter-spacing:0}
+
+  #kpi-panel{top:74px;left:16px;width:280px}
+  .kpi-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 0;border-bottom:1px solid rgba(31,42,68,.6);font-size:.82rem;
+  }
+  .kpi-row:last-child{border-bottom:none}
+  .kpi-row .lbl{color:var(--muted)}
+  .kpi-row .val{font-weight:700;color:var(--accent)}
+  .kpi-row .val.warn{color:var(--warn)}
+  .kpi-row .val.bad{color:var(--danger)}
+  .kpi-row .val.ok{color:var(--ok)}
+
+  .sev-bars{display:flex;gap:6px;margin-top:12px}
+  .sev{
+    flex:1;text-align:center;padding:8px 4px;border-radius:8px;
+    background:var(--panel2);border:1px solid var(--border);
+  }
+  .sev .n{font-size:1.1rem;font-weight:800}
+  .sev .t{font-size:.6rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .sev.g .n{color:var(--ok)}
+  .sev.y .n{color:var(--warn)}
+  .sev.o .n{color:var(--orange)}
+  .sev.r .n{color:var(--danger)}
+
+  #son-panel{top:74px;right:16px;width:330px;max-height:calc(100vh - 100px);display:flex;flex-direction:column}
+  #son-list{overflow-y:auto;flex:1;margin-top:8px}
+  #son-list::-webkit-scrollbar{width:4px}
+  #son-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .son-item{
+    padding:9px 11px;margin-bottom:7px;border-radius:9px;
+    background:var(--panel2);border-left:3px solid var(--accent);
+    font-size:.76rem;animation:slideIn .4s ease;
+  }
+  .son-item .kind{
+    display:inline-block;padding:1px 7px;border-radius:4px;
+    font-size:.62rem;font-weight:700;letter-spacing:.5px;
+    background:rgba(0,212,255,.15);color:var(--accent);margin-right:6px;
+  }
+  .son-item .kind.MRO{background:rgba(124,58,237,.15);color:#a78bfa}
+  .son-item .kind.MLB{background:rgba(16,185,129,.15);color:var(--ok)}
+  .son-item .kind.Self-Healing{background:rgba(239,68,68,.15);color:var(--danger)}
+  .son-item .kind.CCO{background:rgba(245,158,11,.15);color:var(--warn)}
+  .son-item .kind.OUTAGE{background:rgba(239,68,68,.25);color:#fff}
+  .son-item .kind.RECOVERED{background:rgba(16,185,129,.25);color:#fff}
+  .son-item .time{color:var(--muted);font-size:.65rem;float:right}
+  .son-item .msg{color:#c8d3e5;margin-top:4px;display:block}
+  @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+
+  #detail-panel{
+    bottom:16px;right:16px;width:340px;
+    opacity:0;pointer-events:none;transform:translateY(20px);
+  }
+  #detail-panel.show{opacity:1;pointer-events:auto;transform:none}
+  #detail-panel .close{
+    cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;
+  }
+  #detail-panel .close:hover{color:var(--danger)}
+  .dt-title{font-size:1rem;font-weight:700;color:#fff;margin-bottom:4px}
+  .dt-sub{font-size:.72rem;color:var(--muted);margin-bottom:14px}
+  .dt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .dt-item{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px}
+  .dt-item .l{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .dt-item .v{font-size:.92rem;font-weight:700;color:var(--accent);margin-top:2px}
+  .dt-item .v.ok{color:var(--ok)}
+  .dt-item .v.warn{color:var(--warn)}
+  .dt-item .v.bad{color:var(--danger)}
+  .dt-bar{height:3px;background:#050912;border-radius:2px;margin-top:6px;overflow:hidden}
+  .dt-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--ok))}
+
+  #legend{bottom:16px;left:16px;padding:12px 14px}
+  #legend .lg-title{
+    font-size:.66rem;text-transform:uppercase;letter-spacing:1px;
+    color:var(--muted);margin-bottom:8px;
+  }
+  #legend .lg-item{
+    display:flex;align-items:center;gap:8px;
+    font-size:.74rem;color:#c8d3e5;margin-bottom:5px;
+  }
+  #legend .swatch{width:11px;height:11px;border-radius:50%}
+
+  #controls{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:800;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;
+    background:var(--panel);backdrop-filter:blur(12px);
+    border:1px solid var(--border);border-radius:50px;padding:6px;
+    max-width:calc(100vw - 32px);
+  }
+  #controls button{
+    background:transparent;border:none;color:var(--muted);
+    padding:8px 14px;border-radius:50px;cursor:pointer;
+    font-size:.78rem;font-weight:600;transition:.2s;
+    font-family:inherit;white-space:nowrap;
+  }
+  #controls button:hover{color:var(--text);background:rgba(255,255,255,.05)}
+  #controls button.active{
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    color:#fff;
+  }
+  #controls button:disabled{opacity:.5;cursor:wait}
+
+  @media(max-width:900px){
+    #kpi-panel{width:220px}
+    #son-panel{width:260px;max-height:40vh}
+    #detail-panel{width:calc(100% - 32px);left:16px;right:16px}
+    header h1{font-size:.85rem}
+    .hdr-right .cluster-tag{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📡 RF Engineering 2.0 · Live Monitoring Haïti</h1>
+  <div class="hdr-right">
+    <span class="cluster-tag">OpenRAN · 2G/3G/4G/5G · SON</span>
+    <span id="clock">--:--:--</span>
+    <span class="live offline" id="live-status"><span class="dot"></span>OFFLINE</span>
+  </div>
+</header>
+
+<div id="map"></div>
+
+<aside class="panel" id="kpi-panel">
+  <h3>KPI Réseau <span id="kpi-ts">--</span></h3>
+  <div class="kpi-row"><span class="lbl">Cellules actives</span><span class="val" id="k-count">--</span></div>
+  <div class="kpi-row"><span class="lbl">Health moyen</span><span class="val" id="k-health">--</span></div>
+  <div class="kpi-row"><span class="lbl">RRC Setup SR</span><span class="val" id="k-rrc">--</span></div>
+  <div class="kpi-row"><span class="lbl">Drop Call Rate</span><span class="val" id="k-dcr">--</span></div>
+  <div class="kpi-row"><span class="lbl">DL Throughput</span><span class="val" id="k-thr">--</span></div>
+  <div class="kpi-row"><span class="lbl">SINR moyen</span><span class="val" id="k-sinr">--</span></div>
+  <div class="kpi-row"><span class="lbl">PRB Util.</span><span class="val" id="k-prb">--</span></div>
+  <div class="sev-bars">
+    <div class="sev g"><div class="n" id="s-ok">0</div><div class="t">OK</div></div>
+    <div class="sev y"><div class="n" id="s-warn">0</div><div class="t">Warn</div></div>
+    <div class="sev o"><div class="n" id="s-deg">0</div><div class="t">Deg</div></div>
+    <div class="sev r"><div class="n" id="s-crit">0</div><div class="t">Crit</div></div>
+  </div>
+</aside>
+
+<aside class="panel" id="son-panel">
+  <h3>SON · Actions automatiques <span id="son-count">0</span></h3>
+  <div id="son-list"></div>
+</aside>
+
+<aside class="panel" id="detail-panel">
+  <h3>
+    <span>Détail cellule</span>
+    <span class="close" id="detail-close">✕</span>
+  </h3>
+  <div class="dt-title" id="dt-id">--</div>
+  <div class="dt-sub" id="dt-sub">--</div>
+  <div class="dt-grid" id="dt-grid"></div>
+</aside>
+
+<div class="panel" id="legend">
+  <div class="lg-title">Santé cellule</div>
+  <div class="lg-item"><span class="swatch" style="background:#10b981"></span>Excellent (&gt;85)</div>
+  <div class="lg-item"><span class="swatch" style="background:#f59e0b"></span>Correct (70-85)</div>
+  <div class="lg-item"><span class="swatch" style="background:#f97316"></span>Dégradé (50-70)</div>
+  <div class="lg-item"><span class="swatch" style="background:#ef4444"></span>Critique / Panne (&lt;50)</div>
+</div>
+
+<div id="controls">
+  <button id="btn-drive">🚗 Drive Test</button>
+  <button id="btn-heat">🔥 Heatmap</button>
+  <button id="btn-son" class="active">🧠 SON</button>
+  <button id="btn-center">🎯 Recentrer</button>
+  <button id="btn-outage">⚠️ Simuler panne</button>
+  <button id="btn-export">📥 Export CSV</button>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script>
+// =====================================================
+//  CONFIG
+// =====================================================
+const API = window.location.origin;
+const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/kpi';
+
+const COLORS = {
+  ok:   '#10b981',
+  warn: '#f59e0b',
+  deg:  '#f97316',
+  crit: '#ef4444',
+};
+
+function healthColor(h){
+  if (h >= 85) return COLORS.ok;
+  if (h >= 70) return COLORS.warn;
+  if (h >= 50) return COLORS.deg;
+  return COLORS.crit;
+}
+
+// =====================================================
+//  MAP
+// =====================================================
+const map = L.map('map', {
+  center: [18.9, -72.7],
+  zoom: 8,
+  zoomControl: true,
+  attributionControl: false,
+});
+
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+}).addTo(map);
+
+const cellLayer = L.layerGroup().addTo(map);
+const driveLayer = L.layerGroup();
+let heatLayer = null;
+
+const markers = {};
+let selectedCellId = null;
+let driveVisible = false;
+let sonVisible = true;
+let heatVisible = false;
+let heatLoaded = false;
+const cellData = {};
+
+// =====================================================
+//  CHARGEMENT INITIAL
+// =====================================================
+async function loadCells(){
+  const res = await fetch(`${API}/api/cells`);
+  const data = await res.json();
+  data.cells.forEach(cell => {
+    cellData[cell.cell_id] = cell;
+    const m = L.circleMarker([cell.lat, cell.lon], {
+      radius: 7,
+      color: '#0a0e1a',
+      weight: 1.5,
+      fillColor: COLORS.warn,
+      fillOpacity: 0.85,
+    }).addTo(cellLayer);
+
+    m.bindTooltip(`${cell.cell_id} · ${cell.techno}`, {
+      direction: 'top', offset: [0, -6], className: 'cell-tip'
+    });
+
+    m.on('click', () => openDetail(cell.cell_id));
+    markers[cell.cell_id] = m;
+  });
+  document.getElementById('k-count').textContent = data.count;
+}
+
+async function loadDriveTest(){
+  const res = await fetch(`${API}/api/drivetest`);
+  const pts = await res.json();
+
+  L.polyline(pts.map(p => [p.lat, p.lon]), {
+    color: '#00d4ff', weight: 1.5, opacity: 0.4, dashArray: '4 6'
+  }).addTo(driveLayer);
+
+  pts.forEach(p => {
+    const c = p.rsrp >= -85 ? COLORS.ok
+            : p.rsrp >= -95 ? COLORS.warn
+            : p.rsrp >= -105 ? COLORS.deg
+            : COLORS.crit;
+    L.circleMarker([p.lat, p.lon], {
+      radius: 3.5, color: 'transparent',
+      fillColor: c, fillOpacity: 0.9,
+    }).addTo(driveLayer);
+  });
+}
+
+async function loadHeatmap(){
+  if (heatLoaded) return;
+  console.log('Chargement de la heatmap RSRP...');
+
+  const res = await fetch(`${API}/api/heatmap`);
+  const data = await res.json();
+  console.log(`${data.count} points de heatmap reçus`);
+
+  const heatPoints = data.points.map(p => {
+    const intensity = Math.max(0, Math.min(1, (p.rsrp + 120) / 50));
+    return [p.lat, p.lon, intensity];
+  });
+
+  heatLayer = L.heatLayer(heatPoints, {
+    radius: 35,
+    blur: 25,
+    maxZoom: 12,
+    max: 1.0,
+    minOpacity: 0.3,
+    gradient: {
+      0.0: '#ef4444',
+      0.3: '#f97316',
+      0.5: '#f59e0b',
+      0.7: '#84cc16',
+      0.9: '#10b981',
+      1.0: '#00d4ff',
+    }
+  });
+
+  heatLoaded = true;
+}
+
+// =====================================================
+//  WEBSOCKET LIVE
+// =====================================================
+let ws = null;
+let reconnectTimer = null;
+
+function connectWS(){
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    setLive(true);
+    clearTimeout(reconnectTimer);
+    setInterval(() => { if (ws.readyState === 1) ws.send('ping'); }, 15000);
+  };
+
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    if (msg.type === 'kpi') updateKPI(msg.cells);
+    else if (msg.type === 'son') pushSon(msg.event);
+    else if (msg.type === 'son_init') msg.events.forEach(pushSon);
+  };
+
+  ws.onclose = () => {
+    setLive(false);
+    reconnectTimer = setTimeout(connectWS, 2000);
+  };
+  ws.onerror = () => setLive(false);
+}
+
+function setLive(on){
+  const el = document.getElementById('live-status');
+  el.classList.toggle('offline', !on);
+  el.innerHTML = `<span class="dot"></span>${on ? 'LIVE' : 'OFFLINE'}`;
+}
+
+// =====================================================
+//  MISE À JOUR KPI
+// =====================================================
+function updateKPI(cells){
+  const now = new Date();
+  document.getElementById('kpi-ts').textContent =
+    now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR');
+
+  let sumH=0, sumRRC=0, sumDCR=0, sumThr=0, sumSINR=0, sumPRB=0;
+  let ok=0, warn=0, deg=0, crit=0;
+
+  cells.forEach(c => {
+    sumH    += c.health;
+    sumRRC  += c.rrc_sr;
+    sumDCR  += c.dcr;
+    sumThr  += c.dl_throughput;
+    sumSINR += c.sinr_avg;
+    sumPRB  += c.prb_util;
+
+    if (c.health >= 85) ok++;
+    else if (c.health >= 70) warn++;
+    else if (c.health >= 50) deg++;
+    else crit++;
+
+    const m = markers[c.cell_id];
+    if (m) {
+      if (c.outage) {
+        m.setStyle({
+          fillColor: '#ef4444',
+          color: '#fff',
+          weight: 3,
+          radius: 12,
+          fillOpacity: 0.9,
+        });
+      } else {
+        const col = healthColor(c.health);
+        m.setStyle({
+          fillColor: col,
+          color: c.cell_id === selectedCellId ? '#fff' : '#0a0e1a',
+          weight: c.cell_id === selectedCellId ? 2.5 : 1.5,
+          radius: 7,
+          fillOpacity: 0.85,
+        });
+      }
+    }
+  });
+
+  const n = cells.length || 1;
+  const avgH   = sumH/n;
+  const avgRRC = sumRRC/n;
+  const avgDCR = sumDCR/n;
+  const avgThr = sumThr/n;
+  const avgSINR= sumSINR/n;
+  const avgPRB = sumPRB/n;
+
+  setVal('k-health', avgH.toFixed(1), avgH>=85?'ok':'', avgH<50?'bad':'');
+  setVal('k-rrc',    avgRRC.toFixed(2)+'%', avgRRC>=98?'ok':'', avgRRC<96?'bad':'');
+  setVal('k-dcr',    avgDCR.toFixed(2)+'%', avgDCR<=1?'ok':'', avgDCR>1.2?'bad':'');
+  setVal('k-thr',    avgThr.toFixed(1)+' Mb/s', avgThr>=30?'ok':'', avgThr<20?'bad':'');
+  setVal('k-sinr',   avgSINR.toFixed(1)+' dB', avgSINR>=12?'ok':'', avgSINR<8?'bad':'');
+  setVal('k-prb',    avgPRB.toFixed(0)+'%', avgPRB<=75?'ok':'warn', avgPRB>85?'bad':'');
+
+  document.getElementById('s-ok').textContent   = ok;
+  document.getElementById('s-warn').textContent = warn;
+  document.getElementById('s-deg').textContent  = deg;
+  document.getElementById('s-crit').textContent = crit;
+
+  if (selectedCellId) {
+    const c = cells.find(x => x.cell_id === selectedCellId);
+    if (c) renderDetail(c);
+  }
+}
+
+function setVal(id, txt, ...cls){
+  const el = document.getElementById(id);
+  el.textContent = txt;
+  el.className = 'val ' + cls.filter(Boolean).join(' ');
+}
+
+// =====================================================
+//  SON FEED
+// =====================================================
+let sonCount = 0;
+function pushSon(evt){
+  sonCount++;
+  document.getElementById('son-count').textContent = sonCount;
+  const list = document.getElementById('son-list');
+  const el = document.createElement('div');
+  el.className = 'son-item';
+  const t = new Date(evt.ts).toLocaleTimeString('fr-FR');
+  el.innerHTML = `
+    <span class="kind ${evt.kind}">${evt.kind}</span>
+    <span class="time">${t}</span>
+    <span class="msg">${evt.message}</span>
+  `;
+  list.prepend(el);
+  while (list.children.length > 25) list.removeChild(list.lastChild);
+}
+
+// =====================================================
+//  DETAIL PANEL
+// =====================================================
+function openDetail(cell_id){
+  selectedCellId = cell_id;
+  Object.entries(markers).forEach(([id, m]) => {
+    m.setStyle({ color: id === cell_id ? '#fff' : '#0a0e1a', weight: id === cell_id ? 2.5 : 1.5 });
+  });
+  const cfg = cellData[cell_id];
+  if (cfg) {
+    document.getElementById('dt-id').textContent = cfg.cell_id;
+    document.getElementById('dt-sub').textContent =
+      `${cfg.techno} · ${cfg.cluster} · Band ${cfg.band} · PCI ${cfg.pci}`;
+  }
+  document.getElementById('detail-panel').classList.add('show');
+}
+
+function renderDetail(c){
+  const pct = (v, max) => Math.min(100, (v / max) * 100);
+  const cls = (v, good, bad, invert=false) => {
+    if (invert) return v <= good ? 'ok' : v > bad ? 'bad' : 'warn';
+    return v >= good ? 'ok' : v < bad ? 'bad' : 'warn';
+  };
+
+  const items = [
+    { l: 'Health',       v: c.health.toFixed(1),        cls: cls(c.health,85,50),           pct: c.health },
+    { l: 'RRC SR',       v: c.rrc_sr.toFixed(2)+'%',    cls: cls(c.rrc_sr,98,96),           pct: pct(c.rrc_sr-90,10) },
+    { l: 'Drop Call',    v: c.dcr.toFixed(2)+'%',       cls: cls(c.dcr,1,1.2,true),         pct: pct(c.dcr,2) },
+    { l: 'DL Thpt',      v: c.dl_throughput.toFixed(1)+' Mb/s', cls: cls(c.dl_throughput,30,20), pct: pct(c.dl_throughput,80) },
+    { l: 'SINR',         v: c.sinr_avg.toFixed(1)+' dB',cls: cls(c.sinr_avg,12,8),          pct: pct(c.sinr_avg,25) },
+    { l: 'PRB Util',     v: c.prb_util.toFixed(0)+'%',  cls: cls(c.prb_util,75,85,true),    pct: c.prb_util },
+    { l: 'HO SR',        v: c.ho_sr.toFixed(2)+'%',     cls: cls(c.ho_sr,98,96),            pct: pct(c.ho_sr-90,10) },
+    { l: 'RSRP moy',     v: c.rsrp_avg.toFixed(1)+' dBm', cls: cls(c.rsrp_avg,-85,-100),    pct: pct(c.rsrp_avg+120,50) },
+  ];
+  const grid = document.getElementById('dt-grid');
+  grid.innerHTML = items.map(i => `
+    <div class="dt-item">
+      <div class="l">${i.l}</div>
+      <div class="v ${i.cls}">${i.v}</div>
+      <div class="dt-bar"><span style="width:${i.pct}%"></span></div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('detail-close').onclick = () => {
+  selectedCellId = null;
+  document.getElementById('detail-panel').classList.remove('show');
+  Object.values(markers).forEach(m => m.setStyle({ color: '#0a0e1a', weight: 1.5 }));
+};
+
+// =====================================================
+//  CONTROLS
+// =====================================================
+document.getElementById('btn-drive').onclick = (e) => {
+  driveVisible = !driveVisible;
+  e.target.classList.toggle('active', driveVisible);
+  if (driveVisible) driveLayer.addTo(map);
+  else map.removeLayer(driveLayer);
+};
+
+document.getElementById('btn-heat').onclick = async (e) => {
+  heatVisible = !heatVisible;
+  e.target.classList.toggle('active', heatVisible);
+  if (heatVisible) {
+    await loadHeatmap();
+    if (heatLayer) heatLayer.addTo(map);
+  } else {
+    if (heatLayer) map.removeLayer(heatLayer);
+  }
+};
+
+document.getElementById('btn-son').onclick = (e) => {
+  sonVisible = !sonVisible;
+  e.target.classList.toggle('active', sonVisible);
+  document.getElementById('son-panel').style.display = sonVisible ? 'flex' : 'none';
+};
+
+document.getElementById('btn-center').onclick = () => {
+  map.setView([18.9, -72.7], 8);
+};
+
+document.getElementById('btn-outage').onclick = async (e) => {
+  e.target.disabled = true;
+  e.target.textContent = '⏳ Panne en cours...';
+  try {
+    const res = await fetch(`${API}/api/simulate-outage`, { method: 'POST' });
+    const data = await res.json();
+    console.log('Panne simulée sur', data.cell_id);
+  } catch (err) {
+    console.error('Erreur simulation panne:', err);
+  }
+  setTimeout(() => {
+    e.target.disabled = false;
+    e.target.textContent = '⚠️ Simuler panne';
+  }, 2000);
+};
+
+document.getElementById('btn-export').onclick = () => {
+  window.location.href = `${API}/api/export/csv`;
+};
+
+// =====================================================
+//  BOOT
+// =====================================================
+(async () => {
+  try {
+    await loadCells();
+    await loadDriveTest();
+    connectWS();
+  } catch (e) {
+    console.error('Erreur init:', e);
+    setLive(false);
+  }
+})();
+</script>
+
+<style>
+  .leaflet-tooltip.cell-tip{
+    background:rgba(15,21,36,.95);
+    border:1px solid #1f2a44;
+    color:#e6edf7;
+    font-size:.72rem;
+    padding:4px 9px;
+    border-radius:6px;
+    box-shadow:0 4px 12px rgba(0,0,0,.5);
+  }
+  .leaflet-tooltip.cell-tip::before{display:none}
+  .leaflet-control-zoom a{
+    background:rgba(15,21,36,.95)!important;
+    color:#e6edf7!important;
+    border-color:#1f2a44!important;
+  }
+  .leaflet-control-zoom a:hover{background:#1a2338!important;color:#00d4ff!important}
+</style>
+
+</body>
+</html>
