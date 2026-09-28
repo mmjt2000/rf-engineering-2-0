@@ -2,6 +2,7 @@
 Schemas Pydantic pour les utilisateurs.
 """
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -25,6 +26,9 @@ class UserRead(UserBase):
     tenant_id: int
     is_active: bool
     created_at: datetime
+    # Champs enrichis dynamiquement depuis le Tenant (voir router /me)
+    plan: Optional[str] = None
+    tenant_name: Optional[str] = None
 
     class Config:
         from_attributes = True

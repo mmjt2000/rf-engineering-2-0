@@ -98,6 +98,16 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 
 @router.get("/me", response_model=UserRead)
-def me(current_user: User = Depends(get_current_user)):
-    """Retourne le profil de l'utilisateur courant."""
+def me(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Retourne le profil de l'utilisateur courant + infos du tenant
+    (plan et nom d'entreprise) pour l'affichage du header.
+    """
+    tenant = db.query(Tenant).filter(Tenant.id == current_user.tenant_id).first()
+    if tenant:
+        current_user.plan = tenant.plan
+        current_user.tenant_name = tenant.name
     return current_user

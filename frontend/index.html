@@ -180,10 +180,11 @@
     <span class="cluster-tag">OpenRAN · 2G/3G/4G/5G · SON</span>
     <span id="clock">--:--:--</span>
     <span class="live offline" id="live-status"><span class="dot"></span>OFFLINE</span>
-        <div class="user-box">
-      <span id="userEmail">…</span>
-      <button id="logoutBtn" type="button">Logout</button>
-    </div>
+<div class="user-box">
+  <span id="planBadge" class="plan-badge">…</span>
+  <span id="userEmail">…</span>
+  <button id="logoutBtn" type="button">Logout</button>
+</div>        
   </div>
 </header>
 
@@ -621,8 +622,18 @@ async function loadUserInfo() {
     const res = await authFetch("/api/auth/me");
     if (!res.ok) return;
     const user = await res.json();
+
+    // Email
     const el = document.getElementById("userEmail");
     if (el) el.textContent = user.email || "";
+
+    // Plan
+    const plan = (user.plan || "trial").toLowerCase();
+    const badge = document.getElementById("planBadge");
+    if (badge) {
+      badge.textContent = plan;
+      badge.className = "plan-badge " + plan;
+    }
   } catch (e) { /* silencieux */ }
 }
 
@@ -655,6 +666,11 @@ loadUserInfo();
 #userEmail{color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #logoutBtn{background:transparent;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.75rem;font-weight:600;font-family:inherit}
 #logoutBtn:hover{border-color:var(--accent);color:var(--accent)}
+.plan-badge{display:inline-block;padding:3px 10px;border-radius:50px;font-size:.62rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;border:1px solid;margin-right:4px}
+.plan-badge.trial{background:rgba(148,163,184,.15);color:#94a3b8;border-color:rgba(148,163,184,.4)}
+.plan-badge.starter{background:rgba(0,212,255,.15);color:#00d4ff;border-color:rgba(0,212,255,.4)}
+.plan-badge.pro{background:rgba(124,58,237,.15);color:#a78bfa;border-color:rgba(124,58,237,.4)}
+.plan-badge.enterprise{background:rgba(245,158,11,.15);color:#f59e0b;border-color:rgba(245,158,11,.4)}
 </style>
 
 </body>
