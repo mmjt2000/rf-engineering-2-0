@@ -22,6 +22,7 @@ from app.routers import cells as cells_router
 from app.routers import son as son_router
 from app.routers import export as export_router
 from app.routers import auth as auth_router
+from app.services.auth_service import decode_token
 
 
 # ============================================================
@@ -71,10 +72,27 @@ app.include_router(auth_router.router)
 # ============================================================
 @app.websocket("/ws/kpi")
 async def ws_kpi(ws: WebSocket):
-    """WebSocket pour recevoir les KPIs et events SON en temps réel."""
+    """WebSocket sécurisé par JWT (token passé en query string)."""
+    # 1. Récupère le token depuis l'URL : /ws/kpi?token=xxx
+    token = ws.query_params.get("token")
+    if not token:
+        await ws.close(code=1008, reason="Token manquant")
+        return
+
+    payload = decode_token(token)
+    if not payload:
+        await ws.close(code=1008, reason="Token invalide")
+        return
+
+    # 2. Valide que l'utilisateur existe et est actif
+    user_id = payload.get("sub")
+    if not user_id:
+        await ws.close(code=1008, reason="Token mal formé")
+        return
+
+    # 3. Connexion acceptée
     await manager.connect(ws)
 
-    # Envoi initial : snapshot KPI + derniers events SON
     await ws.send_text(json.dumps({
         "type": "kpi",
         "cells": [gen_kpi(c) for c in CELLS],
@@ -86,13 +104,11 @@ async def ws_kpi(ws: WebSocket):
 
     try:
         while True:
-            # On attend un ping du client (garde la connexion ouverte)
             await ws.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(ws)
     except Exception:
         manager.disconnect(ws)
-
 
 # ============================================================
 #  FRONTEND STATIQUE
@@ -100,8 +116,16 @@ async def ws_kpi(ws: WebSocket):
 FRONTEND_DIR = Path(__file__).parent.parent.parent / "frontend"
 
 if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
-
     @app.get("/")
     def index():
-        return FileResponse(FRONTEND_DIR / "index.html")
+        return FileResponse(FRONTEND_DIR / "index.html", media_type="text/html; charset=utf-8")
+
+    @app.get("/login.html")
+    def login_page():
+        return FileResponse(FRONTEND_DIR / "login.html", media_type="text/html; charset=utf-8")
+
+    @app.get("/signup.html")
+    def signup_page():
+        # Sera créé plus tard
+        return FileResponse(FRONTEND_DIR / "signup.html", media_type="text/html; charset=utf-8") if (FRONTEND_DIR / "signup.html").exists() else FileResponse(FRONTEND_DIR / "login.html", media_type="text/html; charset=utf-8")
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
