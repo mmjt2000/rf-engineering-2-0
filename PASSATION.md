@@ -643,3 +643,139 @@ Nouveaux éléments dans `.hdr-right` :
 - [ ] Webhooks
 - [ ] Table `subscriptions` en DB
 - [ ] Basculement trial → starter/pro
+
+---
+
+## 16. Mise à jour du 28 septembre 2026 — PHASE 4 + PROTECTION JURIDIQUE
+
+### Statut : PHASE 4 TERMINÉE À 90% (4.5 reportée)
+
+### A. Protection juridique Knowledge Base (12 pages)
+
+**Contexte :** Audit des 12 pages HTML du dossier `knowledge/` pour anticiper tout risque lié aux marques et paramètres constructeurs (Ericsson, Nokia, Huawei, Samsung).
+
+**Actions réalisées :**
+
+- **`LICENSE` mis à jour** — ajout d'une note "third-party trademarks" qui précise que les marques citées appartiennent à leurs propriétaires respectifs et que leur mention est informative uniquement.
+- **Script Python `add_disclaimers.py` créé** (à la racine de `Mon site/`) — ajoute automatiquement à chaque page `knowledge/*.html` :
+  - Un **bandeau "Avertissement légal"** après `<body>` (ou après `</nav>` pour les pages à nav fixe)
+  - Une **section "Sources et références"** avant `<footer>`
+  - Le script est **idempotent** (peut être relancé sans dupliquer).
+- **Pages patchées :** 5g-nr, context-caribbean, drive-test, ericsson, huawei, index, interferences, mapping, nokia, planning-rf, samsung, tdd-fdd (12/12).
+- **Fix layout grid** — les pages en `display:grid` recevaient le bandeau dans la sidebar. Correction : `grid-column:1/-1` sur le bandeau.
+- **Fix index.html** — le bandeau était caché par la nav fixe. Correction : déplacé après `</nav>` avec `margin:64px 0 0 0`.
+
+**Commits poussés (repo portfolio) :**
+- `b75a15c1` — Legal: disclaimers + sources sur les 12 pages knowledge
+- `46f4b36` — Fix: bandeau plein-largeur (grid-column) sur pages knowledge
+
+---
+
+### B. Phase 4 — Onboarding & Plans (Dashboard SaaS)
+
+#### 4.1 — Page signup.html
+
+**Fichier créé :** `frontend/signup.html`
+
+**Fonctionnalités :**
+- Formulaire : email + nom complet + nom entreprise + password + confirmation
+- **Slug auto-généré** depuis le nom d'entreprise (slugify client-side : minuscules, accents retirés, tirets)
+- Validation client (passwords matchent, longueur ≥ 8)
+- Appel `POST /api/auth/signup` avec la structure `{payload: {...}, tenant_data: {...}}`
+- Sauvegarde du token + redirect dashboard
+
+#### 4.2 — Badge du plan dans le header
+
+**Backend modifié :**
+- `backend/app/schemas/user.py` — `UserRead` étendu avec `plan: Optional[str]` et `tenant_name: Optional[str]`
+- `backend/app/routers/auth.py` — la route `/me` joint maintenant `Tenant` et enrichit la réponse avec `plan` et `tenant_name`
+
+**Frontend modifié :** `frontend/index.html`
+- Ajout `<span id="planBadge" class="plan-badge">` dans `user-box`
+- CSS : 4 variantes de couleur (trial gris, starter cyan, pro violet, enterprise or)
+- JS : `loadUserInfo()` récupère `user.plan` et applique la classe correspondante
+
+#### 4.3 — Lock visuel des features par plan
+
+**Frontend modifié :** `frontend/index.html`
+
+**Mécanisme :**
+- Constante `PLAN_FEATURES` (objet JS) qui définit les features par plan :
+  - `trial` : kpis_basic, map
+  - `starter` : + son, export_csv
+  - `pro` : + heatmap, self_healing
+  - `enterprise` : `*` (tout)
+- Fonction `hasFeature(plan, feature)` et `applyPlanLock(plan)` qui :
+  - Ajoute la classe `locked` aux boutons non accessibles → grisés + icône 🔒
+  - Retire la classe `active` pour éviter la bordure bleue trompeuse
+  - **Masque le panneau SON de droite** si le plan n'a pas accès à `son`
+- Les boutons restent **cliquables** → permet au 402 banner de Phase 3 de s'afficher (message "upgrade plan")
+
+#### 4.4 — Page /billing
+
+**Fichier créé :** `frontend/billing.html`
+**Route ajoutée :** `backend/app/main.py` → `@app.get("/billing.html")`
+
+**Contenu :**
+- Bloc "Plan actuel" (nom du tenant + plan + badge coloré)
+- 4 cartes de plans (Trial/Starter/Pro/Enterprise) avec features ✓/✗
+- Carte du plan actuel surlignée + bouton grisé "Plan actuel"
+- Boutons "Choisir" → placeholder (alert "arrive bientôt" avant intégration Stripe)
+- Bouton "Nous contacter" pour Enterprise → ouvre mailto
+- **Lien** : badge `TRIAL` dans le header du dashboard devient cliquable → redirige vers `/billing.html`
+
+#### 4.5 — Message quota sites/users
+
+**Statut : NON IMPLÉMENTÉE.**
+
+**Raison :** aucune route `POST /api/sites` ni `POST /api/users` n'existe encore dans le backend. Sans possibilité de créer des sites ou users, aucun quota ne peut être atteint.
+
+**Décision reportée** — 3 options ouvertes :
+- **B1** : créer les routes sites/users + quotas (prépare Phase 5 Stripe)
+- **B2** : passer directement à Stripe (mais vendre un plan qui n'ajoute pas de features réelles est prématuré)
+- **B3** : reporter
+
+---
+
+### FIX CRITIQUE (découvert pendant Phase 4.4)
+
+**Problème :** `app.mount("/static", StaticFiles(...))` dans `main.py` était **mal indenté** — il était placé à l'intérieur de la fonction `billing_page()`, donc exécuté uniquement à l'accès de `/billing.html`. Résultat : `/static/js/auth.js` retournait **404** en permanence, cassant tout le dashboard (erreur `authFetch is not defined`).
+
+**Fix :** désindenter la ligne `app.mount(...)` pour qu'elle soit au niveau du `if FRONTEND_DIR.exists():`.
+
+**Leçon :** toujours vérifier l'indentation des `app.mount()` et autres décorateurs FastAPI. Un seul niveau d'indentation en trop peut désactiver toute une route.
+
+---
+
+### Commits poussés (repo rf-engineering-2-0)
+
+| Commit | Description |
+|---|---|
+| `65d5f74` | Phase 4.1-4.2 : signup.html + badge plan dans le header |
+| `18b6bdbc` | Phase 4.4 : page billing + fix app.mount() indentation |
+
+---
+
+### Points de vigilance Phase 4
+
+1. **app.mount() / décorateurs FastAPI** — toujours vérifier l'indentation au même niveau que `if FRONTEND_DIR.exists():`
+2. **Uvicorn --reload** ne détecte pas toujours les changements de fichiers statiques (`frontend/*.html`). Un redémarrage manuel (`Ctrl+C` puis relance) est parfois nécessaire.
+3. **Cache Chrome** — les 404 et erreurs JS restent cachés. Tester en **incognito** (`Ctrl+Shift+N`) pour diagnostiquer.
+4. **Le script `add_disclaimers.py`** doit être relancé si on ajoute de nouvelles pages `knowledge/*.html`.
+5. **Le badge plan** dépend du backend `/me` — si on modifie `UserRead`, vérifier que `plan` et `tenant_name` sont toujours renvoyés.
+
+---
+
+### Prochaines étapes — PHASE 5 : Stripe (à venir)
+
+**Prérequis :**
+- Créer les routes `POST /api/sites` et `POST /api/users` (quota)
+- Créer la table `subscriptions` en DB
+- Intégration Stripe Checkout (bouton "Upgrade" sur `/billing.html`)
+- Webhook `checkout.session.completed` → maj `tenant.plan` en DB
+- Page `/billing/portal` pour gérer l'abonnement
+
+**Décision à prendre :**
+- **B1** : routes sites/users + quotas d'abord, Stripe ensuite
+- **B2** : Stripe direct (nécessite de simuler les features)
+- **B3** : reporter
