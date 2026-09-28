@@ -181,7 +181,7 @@
     <span id="clock">--:--:--</span>
     <span class="live offline" id="live-status"><span class="dot"></span>OFFLINE</span>
 <div class="user-box">
-  <span id="planBadge" class="plan-badge">…</span>
+  <a href="/billing.html" style="text-decoration:none;color:inherit"><span id="planBadge" class="plan-badge">…</span></a>
   <span id="userEmail">…</span>
   <button id="logoutBtn" type="button">Logout</button>
 </div>        
@@ -617,23 +617,64 @@ document.getElementById('btn-export').onclick = () => {
   }
 })();
 // ========== USER INFO + LOGOUT ==========
+const PLAN_FEATURES = {
+  trial:      ["kpis_basic", "map"],
+  starter:    ["kpis_basic", "map", "son", "export_csv"],
+  pro:        ["kpis_basic", "map", "son", "export_csv", "heatmap", "self_healing"],
+  enterprise: ["*"]
+};
+
+function hasFeature(plan, feature) {
+  const features = PLAN_FEATURES[plan] || PLAN_FEATURES.trial;
+  return features.includes("*") || features.includes(feature);
+}
+
+function applyPlanLock(plan) {
+  const rules = [
+    ["btn-drive",   "kpis_basic"],
+    ["btn-heat",    "heatmap"],
+    ["btn-son",     "son"],
+    ["btn-center",  "map"],
+    ["btn-outage",  "son"],
+    ["btn-export",  "export_csv"]
+  ];
+  rules.forEach(([id, feature]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (hasFeature(plan, feature)) {
+      el.classList.remove("locked");
+      el.removeAttribute("title");
+    } else {
+        el.classList.add("locked");
+        el.classList.remove("active");
+        el.title = "Fonctionnalité non incluse dans votre plan " + plan + " — passez à un plan supérieur.";
+    }
+  
+  });
+  // Masquer le panneau SON si pas d'accès
+  const sonPanel = document.getElementById("son-panel");
+  if (sonPanel) {
+    sonPanel.style.display = hasFeature(plan, "son") ? "" : "none";
+  }
+}
+
 async function loadUserInfo() {
   try {
     const res = await authFetch("/api/auth/me");
     if (!res.ok) return;
     const user = await res.json();
 
-    // Email
     const el = document.getElementById("userEmail");
     if (el) el.textContent = user.email || "";
 
-    // Plan
     const plan = (user.plan || "trial").toLowerCase();
     const badge = document.getElementById("planBadge");
     if (badge) {
       badge.textContent = plan;
       badge.className = "plan-badge " + plan;
     }
+
+    applyPlanLock(plan);
   } catch (e) { /* silencieux */ }
 }
 
@@ -671,6 +712,9 @@ loadUserInfo();
 .plan-badge.starter{background:rgba(0,212,255,.15);color:#00d4ff;border-color:rgba(0,212,255,.4)}
 .plan-badge.pro{background:rgba(124,58,237,.15);color:#a78bfa;border-color:rgba(124,58,237,.4)}
 .plan-badge.enterprise{background:rgba(245,158,11,.15);color:#f59e0b;border-color:rgba(245,158,11,.4)}
+button.locked{opacity:.45;cursor:not-allowed;position:relative}
+button.locked:hover{transform:none!important;box-shadow:none!important}
+button.locked::after{content:' 🔒';margin-left:6px;font-size:.72rem}
 </style>
 
 </body>

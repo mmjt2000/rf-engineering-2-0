@@ -128,4 +128,8 @@ if FRONTEND_DIR.exists():
     def signup_page():
         # Sera créé plus tard
         return FileResponse(FRONTEND_DIR / "signup.html", media_type="text/html; charset=utf-8") if (FRONTEND_DIR / "signup.html").exists() else FileResponse(FRONTEND_DIR / "login.html", media_type="text/html; charset=utf-8")
+    
+    @app.get("/billing.html")
+    def billing_page():
+        return FileResponse(FRONTEND_DIR / "billing.html", media_type="text/html; charset=utf-8")
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")

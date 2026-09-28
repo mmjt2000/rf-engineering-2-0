@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mon abonnement · RF Engineering 2.0</title>
+<style>
+:root{--bg:#070b14;--card:#0f1524;--card2:#141b2e;--card3:#1a2338;--accent:#00d4ff;--accent2:#7c3aed;--ok:#10b981;--warn:#f59e0b;--text:#e6edf7;--muted:#94a3b8;--border:#1f2a44;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 24px 80px}
+.container{max-width:1100px;margin:0 auto}
+.back{display:inline-block;color:var(--muted);text-decoration:none;font-size:.85rem;margin-bottom:24px;padding:8px 14px;border-radius:8px;transition:.2s}
+.back:hover{color:var(--accent);background:rgba(0,212,255,.08)}
+h1{font-size:1.8rem;font-weight:800;margin-bottom:8px}
+h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--muted);margin-bottom:40px}
+.current{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:14px;padding:24px 28px;margin-bottom:40px}
+.current-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.current h2{font-size:1.1rem;margin-bottom:4px}
+.current-info{color:var(--muted);font-size:.9rem}
+.badge{display:inline-block;padding:6px 14px;border-radius:50px;font-size:.72rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;border:1px solid}
+.badge.trial{background:rgba(148,163,184,.15);color:#94a3b8;border-color:rgba(148,163,184,.4)}
+.badge.starter{background:rgba(0,212,255,.15);color:#00d4ff;border-color:rgba(0,212,255,.4)}
+.badge.pro{background:rgba(124,58,237,.15);color:#a78bfa;border-color:rgba(124,58,237,.4)}
+.badge.enterprise{background:rgba(245,158,11,.15);color:#f59e0b;border-color:rgba(245,158,11,.4)}
+h2.section-title{font-size:1.2rem;margin:40px 0 20px;font-weight:700}
+.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.plan{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:16px;padding:26px 22px;transition:.25s;position:relative;display:flex;flex-direction:column}
+.plan:hover{border-color:var(--accent);transform:translateY(-4px)}
+.plan.current-plan{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.plan .tag{position:absolute;top:14px;right:14px;font-size:.62rem;font-weight:800;letter-spacing:1px;padding:3px 10px;border-radius:50px;background:rgba(0,212,255,.15);color:var(--accent);border:1px solid rgba(0,212,255,.4);text-transform:uppercase}
+.plan h3{font-size:1.1rem;margin-bottom:6px;text-transform:capitalize}
+.plan .price{font-size:1.8rem;font-weight:800;margin-bottom:4px}
+.plan .price small{font-size:.8rem;color:var(--muted);font-weight:400}
+.plan .desc{color:var(--muted);font-size:.82rem;margin-bottom:16px;min-height:36px}
+.plan ul{list-style:none;margin:0 0 20px;padding:0;font-size:.85rem;flex:1}
+.plan li{padding:5px 0;color:#c8d3e5}
+.plan li::before{content:'✓ ';color:var(--ok);font-weight:700;margin-right:6px}
+.plan li.no{color:#5b6b8c}
+.plan li.no::before{content:'✗ ';color:#5b6b8c}
+.plan button{width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;font-size:.9rem;font-family:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
+.plan button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,212,255,.25)}
+.plan button:disabled{opacity:.5;cursor:default;background:var(--card3);color:var(--muted)}
+.plan button.current-btn{background:transparent;border:1px solid var(--border);color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:.82rem;margin-top:60px;padding-top:20px;border-top:1px solid var(--border)}
+footer a{color:var(--accent);text-decoration:none}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="/" class="back">← Retour au dashboard</a>
+
+  <h1>Mon <span>abonnement</span></h1>
+  <p class="subtitle">Gérez votre plan et découvrez les fonctionnalités disponibles</p>
+
+  <div id="loading" class="loading">Chargement...</div>
+
+  <div id="currentCard" class="current" style="display:none">
+    <div class="current-row">
+      <div>
+        <h2>Plan actuel</h2>
+        <div class="current-info" id="currentInfo">—</div>
+      </div>
+      <div>
+        <span class="badge trial" id="currentBadge">trial</span>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Comparer les plans</h2>
+  <div class="grid" id="plansGrid">
+
+    <div class="plan" data-plan="trial">
+      <h3>Trial</h3>
+      <div class="price">0$<small>/mois</small></div>
+      <div class="desc">Essai gratuit 14 jours</div>
+      <ul>
+        <li>3 sites max</li>
+        <li>2 utilisateurs max</li>
+        <li>KPIs de base</li>
+        <li>Carte interactive</li>
+        <li class="no">SON / Optimisation auto</li>
+        <li class="no">Heatmap RSRP</li>
+        <li class="no">Export CSV</li>
+      </ul>
+      <button data-plan="trial">Plan actuel</button>
+    </div>
+
+    <div class="plan" data-plan="starter">
+      <h3>Starter</h3>
+      <div class="price">490$<small>/mois</small></div>
+      <div class="desc">Pour les petits opérateurs</div>
+      <ul>
+        <li>10 sites max</li>
+        <li>5 utilisateurs max</li>
+        <li>Tout Trial +</li>
+        <li>SON · Optimisation auto</li>
+        <li>Export CSV</li>
+        <li class="no">Heatmap RSRP</li>
+        <li class="no">Self-Healing avancé</li>
+      </ul>
+      <button data-plan="starter">Choisir Starter</button>
+    </div>
+
+    <div class="plan" data-plan="pro">
+      <span class="tag">Populaire</span>
+      <h3>Pro</h3>
+      <div class="price">1 490$<small>/mois</small></div>
+      <div class="desc">Pour les opérateurs régionaux</div>
+      <ul>
+        <li>50 sites max</li>
+        <li>20 utilisateurs max</li>
+        <li>Tout Starter +</li>
+        <li>Heatmap RSRP</li>
+        <li>Self-Healing avancé</li>
+        <li>Support prioritaire</li>
+        <li class="no">Multi-tenant illimité</li>
+      </ul>
+      <button data-plan="pro">Choisir Pro</button>
+    </div>
+
+    <div class="plan" data-plan="enterprise">
+      <h3>Enterprise</h3>
+      <div class="price">Sur devis</div>
+      <div class="desc">Pour les grands groupes</div>
+      <ul>
+        <li>Sites illimités</li>
+        <li>Utilisateurs illimités</li>
+        <li>Toutes les fonctionnalités</li>
+        <li>SLA garanti</li>
+        <li>Support dédié 24/7</li>
+        <li>Onboarding personnalisé</li>
+        <li>API complète</li>
+      </ul>
+      <button data-plan="enterprise">Nous contacter</button>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Paiement sécurisé par Stripe (bientôt disponible)</p>
+    <p style="margin-top:6px">Une question ? <a href="mailto:jeant.montreuil@gmail.com">Contactez-nous</a></p>
+  </footer>
+</div>
+
+<script>
+const TOKEN_KEY = "rf_token";
+function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+
+if (!getToken()) {
+  window.location.href = "/login.html";
+}
+
+async function loadBilling() {
+  try {
+    const res = await fetch("/api/auth/me", {
+      headers: { "Authorization": "Bearer " + getToken() }
+    });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = "/login.html";
+      return;
+    }
+    if (!res.ok) throw new Error("Erreur");
+
+    const user = await res.json();
+    const plan = (user.plan || "trial").toLowerCase();
+
+    // Bloc "Plan actuel"
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("currentCard").style.display = "block";
+
+    const badge = document.getElementById("currentBadge");
+    badge.textContent = plan;
+    badge.className = "badge " + plan;
+
+    const tenants = { trial: "Trial", starter: "Starter", pro: "Pro", enterprise: "Enterprise" };
+    document.getElementById("currentInfo").textContent =
+      (user.tenant_name || "—") + " · Plan " + (tenants[plan] || plan);
+
+    // Marquer le plan actuel
+    document.querySelectorAll(".plan").forEach(el => {
+      const p = el.dataset.plan;
+      const btn = el.querySelector("button");
+      if (p === plan) {
+        el.classList.add("current-plan");
+        btn.disabled = true;
+        btn.classList.add("current-btn");
+        btn.textContent = "Plan actuel";
+      }
+    });
+
+  } catch (e) {
+    document.getElementById("loading").textContent = "Erreur de chargement.";
+  }
+}
+
+// Clics sur les boutons (placeholder avant Stripe)
+document.querySelectorAll(".plan button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const plan = btn.dataset.plan;
+    if (plan === "enterprise") {
+      window.location.href = "mailto:jeant.montreuil@gmail.com?subject=Demande%20devis%20Enterprise";
+      return;
+    }
+    alert("💳 Le paiement en ligne arrive bientôt.\n\nEn attendant, contactez-nous à jeant.montreuil@gmail.com pour changer de plan vers « " + plan + " ».");
+  });
+});
+
+loadBilling();
+</script>
+</body>
+</html>
