@@ -180,6 +180,10 @@
     <span class="cluster-tag">OpenRAN · 2G/3G/4G/5G · SON</span>
     <span id="clock">--:--:--</span>
     <span class="live offline" id="live-status"><span class="dot"></span>OFFLINE</span>
+        <div class="user-box">
+      <span id="userEmail">…</span>
+      <button id="logoutBtn" type="button">Logout</button>
+    </div>
   </div>
 </header>
 
@@ -611,6 +615,23 @@ document.getElementById('btn-export').onclick = () => {
     setLive(false);
   }
 })();
+// ========== USER INFO + LOGOUT ==========
+async function loadUserInfo() {
+  try {
+    const res = await authFetch("/api/auth/me");
+    if (!res.ok) return;
+    const user = await res.json();
+    const el = document.getElementById("userEmail");
+    if (el) el.textContent = user.email || "";
+  } catch (e) { /* silencieux */ }
+}
+
+document.getElementById("logoutBtn")?.addEventListener("click", () => {
+  clearToken();
+  window.location.href = "/login.html";
+});
+
+loadUserInfo();
 </script>
 
 <style>
@@ -630,6 +651,10 @@ document.getElementById('btn-export').onclick = () => {
     border-color:#1f2a44!important;
   }
   .leaflet-control-zoom a:hover{background:#1a2338!important;color:#00d4ff!important}
+.user-box{display:flex;align-items:center;gap:10px;font-size:.8rem}
+#userEmail{color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#logoutBtn{background:transparent;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.75rem;font-weight:600;font-family:inherit}
+#logoutBtn:hover{border-color:var(--accent);color:var(--accent)}
 </style>
 
 </body>
