@@ -779,3 +779,98 @@ Nouveaux éléments dans `.hdr-right` :
 - **B1** : routes sites/users + quotas d'abord, Stripe ensuite
 - **B2** : Stripe direct (nécessite de simuler les features)
 - **B3** : reporter
+
+---
+
+## 17. Mise à jour du 29 septembre 2026 — PHASE 5 : STRIPE (en cours)
+
+### Statut : 70% — Checkout OK, Webhook à débugger
+
+### Ce qui est fait
+
+**Compte Stripe** : créé, en mode TEST (bac à sable)
+- Compte : Groupe Jean Thomas Montreuil
+- Sandbox : Bac à sable de Jean Thomas Montreuil Group
+- Account ID : `acct_1UL3EWBUAqbxmmG4`
+
+**Produits Stripe créés** :
+| Produit | Prix | Price ID |
+|---|---|---|
+| RF Engineering Starter | 490 $ CAD/mois | `price_1UL3aGBUAqbxmmG4UKsUMDTQ` |
+| RF Engineering Pro | 1490 $ CAD/mois | `price_1UL3buBUAqbxmmG4pAD2Hrxs` |
+
+**Fichiers backend créés** :
+- `app/services/stripe_service.py` — `create_checkout_session()` + `construct_webhook_event()`
+- `app/routers/billing.py` — `POST /api/billing/checkout` + `POST /api/billing/webhook`
+
+**Fichiers frontend modifiés** :
+- `frontend/billing.html` — bouton "Choisir Starter/Pro" appelle `/api/billing/checkout` et redirige vers Stripe Checkout
+- `backend/app/main.py` — inclusion du router billing
+
+**Variables d'environnement ajoutées à `.env`** :
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_PRICE_STARTER=price_1UL3aG...
+STRIPE_PRICE_PRO=price_1UL3bu...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+
+**Stripe CLI installé** :
+- Fichier : `C:\Dev\stripe.exe`
+- Login : OK (account acct_1UL3EWBUAqbxmmG4)
+- Tunnel actif : `C:\Dev\stripe.exe listen --events checkout.session.completed,customer.subscription.deleted --forward-to http://127.0.0.1:8000/api/billing/webhook`
+
+### Ce qui marche
+
+- ✅ `POST /api/billing/checkout` → retourne une URL Stripe Checkout valide
+- ✅ Page Stripe Checkout s'ouvre (490 $ CAD, carte de test 4242 acceptée)
+- ✅ Paiement accepté en test → redirect `?checkout=success`
+- ✅ Webhook arrive bien au backend (`POST /api/billing/webhook`)
+
+### Ce qui ne marche PAS
+
+- ❌ Le webhook renvoie **400 Bad Request** — `construct_webhook_event` échoue
+- ❌ Le plan du tenant **ne passe pas** de `trial` à `starter` après paiement
+- ❌ Le badge dans le header reste TRIAL
+
+### Diagnostic en cours
+
+Le message d'erreur uvicorn était :WEBHOOK construct_error: 400: Signature invalide
+
+
+Cause probable : **mismatch entre le whsec dans `.env` et celui du `stripe listen` actuel**. À vérifier.
+
+### Commits poussés
+c955f0a Phase 5: integration Stripe (checkout + webhook)
+
+
+### Fichiers à ne PAS commiter (rappel)
+
+- `backend/.env` (contient les clés sk_test et whsec)
+- Doit être dans `.gitignore` (déjà fait)
+
+### Pour reprendre la prochaine session
+
+**1.** Vérifier que `STRIPE_WEBHOOK_SECRET` dans `.env` = celui affiché par `stripe listen`
+
+**2.** Redémarrer uvicorn après toute modif `.env`
+
+**3.** Lancer un trigger de test : `C:\Dev\stripe.exe trigger checkout.session.completed`
+
+**4.** Regarder les logs uvicorn (les `logger.info("WEBHOOK ...")` sont en place)
+
+**5.** Une fois que le webhook renvoie **200 OK** → faire un vrai paiement test 4242 → vérifier que le badge passe à STARTER
+
+### Points de vigilance
+
+- **Ne JAMAIS** mettre les clés Stripe en dur dans le code — toujours via `.env`
+- **Ne JAMAIS** committer `.env`
+- Le `whsec_` change **à chaque redémarrage** de `stripe listen` → si les tests échouent, vérifier qu'il est à jour dans `.env`
+- Uvicorn **ne recharge pas** `.env` automatiquement → redémarrage manuel nécessaire
+- **3 terminaux obligatoires** : `stripe listen`, `uvicorn`, `terminal de commandes`
+
+### Prochaine étape après Phase 5
+
+- Phase 6 — Opérations (monitoring, backup, support client)
+- Ou passe en **production** Stripe (vraies clés `sk_live_`, `pk_live_`, vrais price IDs)
+- Ou premier client payant en pilote
