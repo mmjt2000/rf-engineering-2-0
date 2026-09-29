@@ -19,6 +19,7 @@ from app.data.kpi import gen_kpi
 from app.son.engine import SON_EVENTS
 from app.websocket.manager import manager
 from app.routers import cells as cells_router
+from app.routers import billing as billing_router
 from app.routers import sites as sites_router
 from app.routers import users as users_router
 from app.routers import son as son_router
@@ -64,6 +65,7 @@ app.add_middleware(
 #  ROUTERS (regroupés par domaine)
 # ============================================================
 app.include_router(cells_router.router)
+app.include_router(billing_router.router)
 app.include_router(sites_router.router)
 app.include_router(users_router.router)
 app.include_router(son_router.router)
