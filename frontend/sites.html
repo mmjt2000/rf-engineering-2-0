@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mes sites · RF Engineering 2.0</title>
+<style>
+:root{--bg:#070b14;--card:#0f1524;--card2:#141b2e;--accent:#00d4ff;--accent2:#7c3aed;--text:#e6edf7;--muted:#94a3b8;--border:#1f2a44;--ok:#10b981;--danger:#ef4444;--warn:#f59e0b;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 24px 80px}
+.container{max-width:1000px;margin:0 auto}
+.back{display:inline-block;color:var(--muted);text-decoration:none;font-size:.85rem;margin-bottom:24px;padding:8px 14px;border-radius:8px}
+.back:hover{color:var(--accent);background:rgba(0,212,255,.08)}
+h1{font-size:1.8rem;font-weight:800;margin-bottom:8px}
+h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--muted);margin-bottom:32px}
+.quota{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:14px;padding:20px 24px;margin-bottom:32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.quota-info{font-size:1rem}
+.quota-info strong{color:var(--accent);font-size:1.4rem}
+.quota.warn{border-left-color:var(--warn)}
+.quota.danger{border-left-color:var(--danger)}
+.btn{padding:12px 22px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:700;cursor:pointer;font-size:.9rem;font-family:inherit;transition:.2s}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,212,255,.25)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent);transform:none;box-shadow:none}
+.btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger);padding:8px 14px;font-size:.8rem}
+.btn.danger:hover{background:rgba(239,68,68,.1);transform:none;box-shadow:none}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.9rem;background:var(--card);border-radius:12px;overflow:hidden}
+th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--card2);color:var(--accent);font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px}
+tr:hover td{background:rgba(0,212,255,.03)}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:.9rem}
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:480px}
+.modal h2{font-size:1.2rem;margin-bottom:20px;color:#fff}
+label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase}
+input{width:100%;padding:11px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:.9rem;margin-bottom:14px;font-family:inherit}
+input:focus{outline:none;border-color:var(--accent)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger);padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:16px;display:none}
+.error.visible{display:block}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="/" class="back">← Retour au dashboard</a>
+
+  <h1>Mes <span>sites RF</span></h1>
+  <p class="subtitle">Gérez vos sites, leurs coordonnées et clusters</p>
+
+  <div id="quotaBox" class="quota">
+    <div class="quota-info">
+      <strong id="quotaCount">—</strong> sites utilisés
+      <span id="quotaPlan" style="color:var(--muted);font-size:.85rem"></span>
+    </div>
+    <button id="btnNew" class="btn" disabled>+ Nouveau site</button>
+  </div>
+
+  <div id="loading" class="loading">Chargement...</div>
+  <div id="tableWrap" style="display:none">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Cluster</th>
+          <th style="text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="sitesBody"></tbody>
+    </table>
+    <div id="emptyMsg" class="empty" style="display:none">
+      Aucun site pour le moment. Cliquez sur "Nouveau site" pour commencer.
+    </div>
+  </div>
+</div>
+
+<div id="modalBg" class="modal-bg">
+  <div class="modal">
+    <h2>Nouveau site</h2>
+    <div id="modalError" class="error"></div>
+    <label>Nom du site</label>
+    <input type="text" id="siteName" placeholder="Site PAP 01" required>
+    <label>Latitude</label>
+    <input type="number" id="siteLat" step="0.0001" placeholder="18.5" required>
+    <label>Longitude</label>
+    <input type="number" id="siteLon" step="0.0001" placeholder="-72.3" required>
+    <label>Cluster (optionnel)</label>
+    <input type="text" id="siteCluster" placeholder="Port-au-Prince">
+    <div class="modal-actions">
+      <button id="btnCancel" class="btn ghost">Annuler</button>
+      <button id="btnCreate" class="btn">Créer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOKEN_KEY = "rf_token";
+function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+
+if (!getToken()) { window.location.href = "/login.html"; }
+
+const PLAN_LIMITS = { trial: 3, starter: 10, pro: 50, enterprise: 9999 };
+
+async function apiFetch(url, opts = {}) {
+  const headers = {
+    ...(opts.headers || {}),
+    "Authorization": "Bearer " + getToken()
+  };
+  if (opts.body && typeof opts.body === "object" && !(opts.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(opts.body);
+  }
+  const res = await fetch(url, { ...opts, headers });
+  if (res.status === 401) {
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = "/login.html";
+    throw new Error("Unauthorized");
+  }
+  return res;
+}
+
+let currentPlan = "trial";
+let currentMax = 3;
+
+async function loadUser() {
+  const res = await apiFetch("/api/auth/me");
+  if (!res.ok) return;
+  const user = await res.json();
+  currentPlan = (user.plan || "trial").toLowerCase();
+  currentMax = PLAN_LIMITS[currentPlan] || 3;
+
+  document.getElementById("quotaPlan").textContent = "(plan " + currentPlan + ")";
+}
+
+async function loadSites() {
+  const res = await apiFetch("/api/sites");
+  if (!res.ok) {
+    document.getElementById("loading").textContent = "Erreur de chargement.";
+    return;
+  }
+  const sites = await res.json();
+
+  // Quota
+  document.getElementById("quotaCount").textContent = sites.length + " / " + currentMax;
+
+  const quotaBox = document.getElementById("quotaBox");
+  const btnNew = document.getElementById("btnNew");
+  quotaBox.classList.remove("warn", "danger");
+
+  if (sites.length >= currentMax) {
+    quotaBox.classList.add("danger");
+    btnNew.disabled = true;
+    btnNew.textContent = "Quota atteint — Upgrade";
+  } else {
+    if (sites.length >= currentMax - 1) {
+      quotaBox.classList.add("warn");
+    }
+    btnNew.disabled = false;
+    btnNew.textContent = "+ Nouveau site";
+  }
+
+  // Liste
+  const tbody = document.getElementById("sitesBody");
+  tbody.innerHTML = "";
+
+  if (sites.length === 0) {
+    document.getElementById("emptyMsg").style.display = "block";
+    document.getElementById("tableWrap").querySelector("table").style.display = "none";
+  } else {
+    document.getElementById("emptyMsg").style.display = "none";
+    document.getElementById("tableWrap").querySelector("table").style.display = "";
+    sites.forEach(s => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(s.name)}</strong></td>
+        <td>${s.lat.toFixed(4)}</td>
+        <td>${s.lon.toFixed(4)}</td>
+        <td>${s.cluster ? escapeHtml(s.cluster) : "—"}</td>
+        <td style="text-align:right">
+          <button class="btn danger" data-id="${s.id}">Supprimer</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll("button[data-id]").forEach(btn => {
+      btn.addEventListener("click", () => deleteSite(parseInt(btn.dataset.id), btn));
+    });
+  }
+
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("tableWrap").style.display = "block";
+}
+
+function escapeHtml(s) {
+  const d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function deleteSite(id, btn) {
+  if (!confirm("Supprimer ce site ?")) return;
+  btn.disabled = true;
+  btn.textContent = "...";
+  const res = await apiFetch("/api/sites/" + id, { method: "DELETE" });
+  if (res.ok || res.status === 204) {
+    await loadSites();
+  } else {
+    alert("Erreur de suppression");
+    btn.disabled = false;
+    btn.textContent = "Supprimer";
+  }
+}
+
+// Modal
+const modalBg = document.getElementById("modalBg");
+const modalError = document.getElementById("modalError");
+const btnCreate = document.getElementById("btnCreate");
+
+document.getElementById("btnNew").addEventListener("click", () => {
+  if (document.getElementById("quotaBox").classList.contains("danger")) {
+    if (confirm("Vous avez atteint votre quota. Voir les plans d'upgrade ?")) {
+      window.location.href = "/billing.html";
+    }
+    return;
+  }
+  modalError.classList.remove("visible");
+  modalBg.classList.add("open");
+});
+
+document.getElementById("btnCancel").addEventListener("click", () => {
+  modalBg.classList.remove("open");
+});
+
+modalBg.addEventListener("click", (e) => {
+  if (e.target === modalBg) modalBg.classList.remove("open");
+});
+
+btnCreate.addEventListener("click", async () => {
+  modalError.classList.remove("visible");
+
+  const name = document.getElementById("siteName").value.trim();
+  const lat = parseFloat(document.getElementById("siteLat").value);
+  const lon = parseFloat(document.getElementById("siteLon").value);
+  const cluster = document.getElementById("siteCluster").value.trim() || null;
+
+  if (!name || isNaN(lat) || isNaN(lon)) {
+    modalError.textContent = "Nom, latitude et longitude requis.";
+    modalError.classList.add("visible");
+    return;
+  }
+
+  btnCreate.disabled = true;
+  btnCreate.textContent = "Création...";
+
+  try {
+    const res = await apiFetch("/api/sites", {
+      method: "POST",
+      body: { name, lat, lon, cluster }
+    });
+
+    if (res.status === 402) {
+      const err = await res.json();
+      modalError.textContent = "💎 " + (err.detail || "Quota atteint.");
+      modalError.classList.add("visible");
+      btnCreate.disabled = false;
+      btnCreate.textContent = "Créer";
+      return;
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      modalError.textContent = err.detail || "Erreur de création.";
+      modalError.classList.add("visible");
+      btnCreate.disabled = false;
+      btnCreate.textContent = "Créer";
+      return;
+    }
+
+    // Succès
+    modalBg.classList.remove("open");
+    document.getElementById("siteName").value = "";
+    document.getElementById("siteLat").value = "";
+    document.getElementById("siteLon").value = "";
+    document.getElementById("siteCluster").value = "";
+    btnCreate.disabled = false;
+    btnCreate.textContent = "Créer";
+
+    await loadSites();
+  } catch (e) {
+    modalError.textContent = "Erreur réseau.";
+    modalError.classList.add("visible");
+    btnCreate.disabled = false;
+    btnCreate.textContent = "Créer";
+  }
+});
+
+// Init
+(async () => {
+  await loadUser();
+  await loadSites();
+})();
+</script>
+</body>
+</html>

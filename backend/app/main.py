@@ -137,3 +137,7 @@ if FRONTEND_DIR.exists():
     def billing_page():
         return FileResponse(FRONTEND_DIR / "billing.html", media_type="text/html; charset=utf-8")
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+    @app.get("/sites.html")
+    def sites_page():
+        return FileResponse(FRONTEND_DIR / "sites.html", media_type="text/html; charset=utf-8")

@@ -182,10 +182,11 @@
     <span class="live offline" id="live-status"><span class="dot"></span>OFFLINE</span>
 <div class="user-box">
   <a href="/billing.html" style="text-decoration:none;color:inherit"><span id="planBadge" class="plan-badge">…</span></a>
+  <a href="/sites.html" id="sitesLink" style="text-decoration:none;color:var(--muted);font-size:.78rem;padding:6px 10px;border:1px solid var(--border);border-radius:8px;transition:.2s">Sites <span id="siteQuota" style="color:var(--accent);font-weight:700">0/0</span></a>
   <span id="userEmail">…</span>
   <button id="logoutBtn" type="button">Logout</button>
-</div>        
-  </div>
+</div>
+</div>
 </header>
 
 <div id="map"></div>
@@ -677,7 +678,26 @@ async function loadUserInfo() {
     applyPlanLock(plan);
   } catch (e) { /* silencieux */ }
 }
+async function loadSiteQuota() {
+  try {
+    const res = await authFetch("/api/sites");
+    if (!res.ok) return;
+    const sites = await res.json();
+    const el = document.getElementById("siteQuota");
+    if (!el) return;
 
+    // Récupère la limite selon le plan
+    const PLAN_LIMITS = { trial: 3, starter: 10, pro: 50, enterprise: 9999 };
+    const plan = document.getElementById("planBadge")?.textContent?.toLowerCase() || "trial";
+    const max = PLAN_LIMITS[plan] || 3;
+
+    el.textContent = `${sites.length}/${max}`;
+    if (sites.length >= max) {
+      el.style.color = "var(--danger)";
+    }
+  } catch (e) { /* silencieux */ }
+}
+loadSiteQuota();
 document.getElementById("logoutBtn")?.addEventListener("click", () => {
   clearToken();
   window.location.href = "/login.html";
