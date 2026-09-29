@@ -16,6 +16,14 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
 
 
+class UserCreateInTenant(BaseModel):
+    """Pour inviter un user dans le tenant courant (admin seulement)."""
+    email: EmailStr
+    full_name: str | None = None
+    password: str = Field(..., min_length=8)
+    role: str = "user"
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -26,7 +34,6 @@ class UserRead(UserBase):
     tenant_id: int
     is_active: bool
     created_at: datetime
-    # Champs enrichis dynamiquement depuis le Tenant (voir router /me)
     plan: Optional[str] = None
     tenant_name: Optional[str] = None
 
