@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.models.base import Base
 
-load_dotenv()
+load_dotenv(override=True)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:

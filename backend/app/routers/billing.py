@@ -41,8 +41,10 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
         logger.info(f"WEBHOOK type={event_type}")
 
         if event_type == "checkout.session.completed":
-            data_dict = dict(data)
-            metadata = dict(data_dict.get("metadata") or {})
+            data_dict = data.to_dict() if hasattr(data, "to_dict") else dict(data)
+            metadata = data_dict.get("metadata") or {}
+            if hasattr(metadata, "to_dict"):
+                metadata = metadata.to_dict()
             tenant_id = metadata.get("tenant_id") or data_dict.get("client_reference_id")
             plan = metadata.get("plan")
             logger.info(f"WEBHOOK tenant_id={tenant_id} plan={plan}")
@@ -56,7 +58,8 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
                     logger.info(f"WEBHOOK plan updated to {plan}")
 
         elif event_type == "customer.subscription.deleted":
-            customer_id = data.get("customer")
+            data_dict = data.to_dict() if hasattr(data, "to_dict") else dict(data)
+            customer_id = data_dict.get("customer")
             tenant = db.query(Tenant).filter(Tenant.stripe_customer_id == customer_id).first()
             if tenant:
                 tenant.plan = "trial"
@@ -69,7 +72,6 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
         logger.error(f"WEBHOOK processing_error: {e}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Processing error: {e}")
-
 @router.post("/checkout")
 def checkout(
     payload: dict,

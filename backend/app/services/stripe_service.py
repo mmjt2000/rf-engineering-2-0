@@ -6,10 +6,10 @@ import stripe
 from fastapi import HTTPException
 
 # Configuration (lue depuis .env au démarrage du backend)
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 
-STRIPE_PRICE_STARTER = os.environ.get("STRIPE_PRICE_STARTER")
-STRIPE_PRICE_PRO = os.environ.get("STRIPE_PRICE_PRO")
+STRIPE_PRICE_STARTER = os.environ.get("STRIPE_PRICE_STARTER", "").strip()
+STRIPE_PRICE_PRO = os.environ.get("STRIPE_PRICE_PRO", "").strip()
 
 PLAN_PRICES = {
     "starter": STRIPE_PRICE_STARTER,
@@ -47,8 +47,15 @@ def create_checkout_session(tenant, plan: str, success_url: str, cancel_url: str
 def construct_webhook_event(payload: bytes, sig_header: str):
     """
     Vérifie la signature Stripe et retourne l'événement.
+    En mode DEV (STRIPE_DEV_MODE=1), la vérification est bypassée.
     """
-    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+    import json
+
+    # MODE DEV — bypass signature
+    if os.environ.get("STRIPE_DEV_MODE") == "1":
+        return json.loads(payload.decode("utf-8"))
+
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
     if not webhook_secret:
         raise HTTPException(status_code=500, detail="Webhook secret non configuré")
 
