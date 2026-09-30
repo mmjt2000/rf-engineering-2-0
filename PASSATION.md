@@ -874,3 +874,122 @@ c955f0a Phase 5: integration Stripe (checkout + webhook)
 - Phase 6 — Opérations (monitoring, backup, support client)
 - Ou passe en **production** Stripe (vraies clés `sk_live_`, `pk_live_`, vrais price IDs)
 - Ou premier client payant en pilote
+
+
+---
+
+## 18. Mise à jour du 29 septembre 2026 — PHASE 5 : STRIPE TERMINÉE ✅
+
+### Statut : SaaS fonctionne end-to-end (local)
+
+### Test end-to-end validé
+
+Signup → Login → Dashboard → Cliquer "Choisir Starter" → Stripe Checkout → Paiement 4242 → Webhook → Plan mis à jour → Features débloquées automatiquement.
+
+Le compte `admin@rfboss.com` est passé de TRIAL à STARTER après un paiement test Stripe.
+
+### Changement majeur : nouveau projet Neon
+
+L'ancien projet Neon (rf-engineering, Ohio) avait un problème récurrent de mot de passe. On l'a abandonné.
+
+Nouveau projet Neon :
+- Nom : rf-engineering-2
+- Région : AWS US East 2 (Ohio)
+- Les credentials sont dans backend/.env (jamais commités)
+
+### Comptes de test locaux
+
+| Email | Mot de passe | Plan | Tenant |
+|---|---|---|---|
+| admin@rfboss.com | Admin1234! | STARTER | RF Boss |
+| test2@rfboss.com | (perdu - ancien Neon) | - | - |
+
+### Fichiers backend modifiés (commit 8a47952)
+
+- app/database.py - ajout load_dotenv(override=True)
+- app/services/stripe_service.py - construct_webhook_event avec bypass signature si STRIPE_DEV_MODE=1
+- app/routers/billing.py - fix to_dict() pour stripe-python v15 + logs détaillés
+
+### Commandes utiles (local)
+
+Terminal 1 - Uvicorn :
+    cd C:\Dev\rf-engineering-2-0\backend
+    .\venv\Scripts\Activate.ps1
+    uvicorn main:app --reload --port 8000
+
+Terminal 2 - Stripe webhook tunnel (à laisser tourner) :
+    C:\Dev\stripe.exe listen --events checkout.session.completed,customer.subscription.deleted --forward-to http://127.0.0.1:8000/api/billing/webhook
+
+Tuer uvicorn :
+    taskkill /F /IM python.exe
+
+### Points de vigilance CRITIQUES
+
+1. Ne JAMAIS utiliser PowerShell pour écrire dans .env - provoque des corruptions. Utiliser Notepad ou VS Code en UTF-8.
+
+2. Uvicorn ne recharge PAS .env automatiquement. Après toute modif : taskkill /F /IM python.exe puis relance.
+
+3. +psycopg obligatoire dans DATABASE_URL (sinon SQLAlchemy cherche psycopg2 non installé).
+
+4. &channel_binding=require à la fin de l'URL Neon peut poser problème avec psycopg v3. Retirer si besoin.
+
+5. STRIPE_DEV_MODE=1 bypass la vérification de signature webhook. À RETIRER en production.
+
+6. Neon Free Tier : cold start 10-30s après inactivité.
+
+7. .env ne doit JAMAIS être commité (déjà dans .gitignore).
+
+8. app.mount("/static", ...) doit être indenté au même niveau que if FRONTEND_DIR.exists(): - sinon 404 sur tous les assets.
+
+9. GitHub Secret Scanning bloque tout push contenant des clés Stripe (sk_test_...) ou des mots de passe Neon (npg_...). Ne jamais les mettre dans PASSATION.md.
+
+### À FAIRE - PROCHAINE SESSION
+
+#### 1. Mettre à jour Render (10 min)
+
+Le compte admin@rfboss.com n'existe PAS sur Render (ancien Neon abandonné).
+
+Actions :
+1. https://dashboard.render.com → service rf-engineering-2-0 → Environment
+2. Mettre à jour DATABASE_URL avec la nouvelle URL Neon (avec +psycopg)
+3. Vérifier SECRET_KEY
+4. Vérifier STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY
+5. Ajouter STRIPE_PRICE_STARTER, STRIPE_PRICE_PRO, STRIPE_WEBHOOK_SECRET
+6. NE PAS ajouter STRIPE_DEV_MODE en prod
+7. Save Changes → attendre redéploiement (2-3 min)
+8. Aller sur https://rf-engineering-2-0.onrender.com/signup.html → créer un compte prod
+
+#### 2. Retirer STRIPE_DEV_MODE=1 avant la prod
+
+En production, la vérification de signature webhook doit être active.
+
+#### 3. Passer Stripe en production (quand tu as un vrai client)
+
+- Créer les produits en mode live sur Stripe
+- Régénérer les clés sk_live_, pk_live_
+- Créer un nouveau webhook endpoint pour l'URL de prod
+- Copier le nouveau whsec_... dans les variables Render
+- Mettre à jour STRIPE_PRICE_STARTER, STRIPE_PRICE_PRO avec les IDs live
+
+#### 4. Sécurité - régénérer les clés exposées
+
+Pendant le debug, plusieurs secrets ont été partagés dans le chat :
+- Clé Stripe test sk_test_...
+- Mot de passe Neon npg_...
+
+Actions recommandées :
+- Stripe : Développeurs → Clés API → Roll key (régénérer)
+- Neon : Console → projet → Reset password
+
+### Commits clés de la session
+
+    8a47952 Phase 5: Stripe end-to-end fonctionnel (checkout + webhook)
+    c955f0a Phase 5: integration Stripe (checkout + webhook)
+    155e60d Phase B: page sites.html + indicateur quota header
+    34e1078 Phase 4.5: routes sites/users + quotas par plan (402)
+
+### Leçon de la session
+
+PowerShell est un piège pour éditer des fichiers de config avec des valeurs sensibles. Toujours utiliser Notepad ou VS Code.
+
+Toujours tester la connexion DB séparément avant de lancer uvicorn.
