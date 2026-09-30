@@ -2,7 +2,6 @@ fastapi
 uvicorn[standard]
 websockets
 shapely
-
 sqlalchemy
 psycopg[binary]
 alembic
@@ -13,6 +12,4 @@ python-jose[cryptography]
 pydantic-settings
 pydantic[email]
 python-multipart
-
 stripe
-STRIPE_WEBHOOK_SECRET=whsec_61dfa6164350fcfdc8a120278a1a8034590d23a288616859e964259f86927c9fe
