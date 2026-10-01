@@ -993,3 +993,90 @@ Actions recommandées :
 PowerShell est un piège pour éditer des fichiers de config avec des valeurs sensibles. Toujours utiliser Notepad ou VS Code.
 
 Toujours tester la connexion DB séparément avant de lancer uvicorn.
+
+
+---
+
+## 19. Mise à jour du 30 septembre 2026 — SaaS EN LIGNE via Cloudflare Tunnel
+
+### Statut : SaaS accessible publiquement ✅
+
+### Solution retenue : Cloudflare Tunnel
+
+Après avoir échoué sur :
+- **Render Free** (refus de connexion à Neon — IP partagées bloquées)
+- **Oracle Cloud ARM** (Out of capacity permanent sur AD-1/AD-2/AD-3)
+- **Fly.io** (carte de crédit requise à l'inscription)
+
+La solution qui marche : **Cloudflare Tunnel** + uvicorn en local.
+
+**URL publique** : `https://xxx-xxx-xxx.trycloudflare.com` (change à chaque redémarrage)
+
+### Comment ça marche
+
+Cloudflare Tunnel crée un tunnel HTTPS public vers le localhost. Le PC reste le serveur, Cloudflare s'occupe du DNS + HTTPS.
+
+**2 terminaux obligatoires :**
+
+**Terminal 1 — Uvicorn** :
+
+cd C:\Dev\rf-engineering-2-0\backend
+.\venv\Scripts\Activate.ps1
+uvicorn main:app --reload --port 8000
+
+
+**Terminal 2 — Cloudflare Tunnel** :
+
+cloudflared tunnel --url http://localhost:8000
+
+→ Copie l'URL `https://xxx.trycloudflare.com` affichée et ouvre-la dans Chrome.
+
+### Installation (faite une seule fois)
+
+winget install --id Cloudflare.cloudflared
+
+
+### Avantages / Limites
+
+| Avantage | Limite |
+|---|---|
+| Gratuit, aucune carte | PC doit rester allumé |
+| HTTPS automatique | URL change à chaque redémarrage |
+| Pas de cold start | Pas de vrai domaine (pour l'instant) |
+| Marche avec Neon + Stripe | |
+
+### Pour une URL fixe (à faire quand tu auras un domaine)
+
+Cloudflare propose des **tunnels nommés** avec un domaine custom (~10$/an) :
+1. Acheter un domaine (Namecheap, Cloudflare)
+2. Configurer un tunnel nommé dans Cloudflare Zero Trust
+3. URL fixe : `https://rf.ton-domaine.com`
+
+### Test validé ce soir
+
+- ✅ Login `admin@rfboss.com` / `Admin1234!` via URL Cloudflare
+- ✅ Dashboard LIVE, badge STARTER, 54 cellules
+- ✅ SON Actions temps réel
+- ✅ Quota sites 0/10
+
+### Alternatives éliminées (à ne pas retenter)
+
+| Solution | Raison de l'échec |
+|---|---|
+| Render Free | IP partagées bloquées par Neon |
+| Render Starter (7$/mois) | Pas de budget pour l'instant |
+| Oracle Cloud ARM | Out of capacity chronique |
+| Fly.io | Carte de crédit obligatoire |
+| Vercel | Pas adapté pour FastAPI+WebSocket |
+
+### Prochaines étapes (quand budget/domaine dispo)
+
+1. Acheter un domaine (~10$/an)
+2. Configurer Cloudflare Tunnel nommé → URL fixe
+3. OU passer à Render Starter (7$/mois) quand budget le permet
+4. OU retenter Oracle Cloud tôt le matin (5h-7h)
+
+⚠️ Vérifie qu'il n'y a AUCUN secret dans ce que tu colles (pas de sk_test_, pas de npg_, pas de whsec_, pas de clé SSH).
+
+Ctrl + S → ferme Notepad
+
