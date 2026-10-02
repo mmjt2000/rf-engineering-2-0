@@ -1195,3 +1195,24 @@ Pour éviter la corruption du HTML à chaque exécution (comme dans l'ancienne v
 ...
 <!-- ADMIN_JOBS_END -->
 
+---
+
+## 22. Nouveau projet : RF Analytics (2 octobre 2026)
+
+### Statut : Backend initial fonctionnel ✅
+
+**RF Analytics** est un nouveau produit SaaS séparé de RF Engineering 2.0, vendu indépendamment.
+
+**Positionnement :** "Le copilote du manager RF" — Tableaux de bord historiques, bulletins de santé réseau, alertes intelligentes.
+
+**Repo :** https://github.com/mmjt2000/rf-analytics (privé)
+
+**Stack :** FastAPI + PostgreSQL + TimescaleDB + Docker
+
+**Structure initiale créée :**
+- backend/app/ (modèles, services, routers, workers, templates)
+- frontend/ (HTML/CSS/JS)
+- docker-compose.yml (PostgreSQL + TimescaleDB)
+- 5 tables : tenants, users, kpi_history, bulletins, alerts
+
+**Prochaine étape :** authentification JWT + multi-tenancy
