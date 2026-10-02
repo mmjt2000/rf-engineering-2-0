@@ -125,7 +125,11 @@ if FRONTEND_DIR.exists():
     @app.get("/")
     def index():
         return FileResponse(FRONTEND_DIR / "index.html", media_type="text/html; charset=utf-8")
-
+    
+    @app.get("/index.html")
+    def index_html_page():
+        return FileResponse(FRONTEND_DIR / "index.html", media_type="text/html; charset=utf-8")
+    
     @app.get("/login.html")
     def login_page():
         return FileResponse(FRONTEND_DIR / "login.html", media_type="text/html; charset=utf-8")

@@ -16,3 +16,8 @@ narration.mp3
 demo_rf_engineering.mp4
 demo_recorder.py
 voice_over.py
+# ⚠️ FICHIERS PRIVÉS — NE JAMAIS COMMITER
+sites_prives.json
+prepare_sites.py
+*.privé.json
+*.private.json
