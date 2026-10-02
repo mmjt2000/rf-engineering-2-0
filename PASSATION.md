@@ -1080,3 +1080,118 @@ Cloudflare propose des **tunnels nommés** avec un domaine custom (~10$/an) :
 
 Ctrl + S → ferme Notepad
 
+---
+
+## 20. Mise à jour du 1er octobre 2026 — Portfolio mobile + Vidéo démo + Jobs v4
+
+### Statut : Portfolio responsive ✅ + Démo vidéo ✅ + Jobs v4 ✅
+
+### A. Portfolio responsive mobile
+
+**Problème :** sur téléphone, la barre de navigation débordait et aucun menu n'était accessible sauf "Contact".
+
+**Solution :** menu hamburger responsive + corrections mobile.
+
+**Modifications dans `index.html` :**
+- Ajout d'un bouton `.menu-toggle` (☰) caché sur desktop
+- Media query @900px : le menu devient vertical et s'ouvre au clic
+- JavaScript pour ouvrir/fermer le menu
+- Corrections responsive supplémentaires à @600px (padding, grilles, stats)
+- Bug fix : balise `</div>` manquante dans la section News
+
+**Fichiers touchés :**
+- `index.html` (nav + CSS + JS)
+
+### B. Vidéo démo RF Engineering 2.0
+
+**Objectif :** démontrer le SaaS en attendant un domaine propre.
+
+**Outils utilisés :**
+- **Playwright** (Python) → enregistrement automatisé de l'écran
+- **edge-tts** (Microsoft) → voix off française
+- **ffmpeg** → fusion vidéo + audio
+
+**Fichiers créés :**
+- `demo_recorder.py` → script Playwright qui enregistre 7 scènes du dashboard
+- `voice_over.py` → génère la voix + fusionne avec la vidéo
+- `videos_demo/` → dossier des vidéos brutes `.webm`
+- `demo_rf_engineering.mp4` → vidéo finale avec voix off
+
+**Configuration voix :**
+- `VOICE = "fr-FR-HenriNeural"` (voix masculine française, professionnelle)
+
+**Résultat :**
+- Vidéo de ~1min22 avec voix off masculine
+- Uploadée sur YouTube en **Non répertorié** : `nHXvM27dTa0`
+- Intégrée dans le portfolio via une **modale HTML** avec iframe
+
+**Modifications dans `index.html` :**
+- Lien "🎬 Voir la démo vidéo" dans la carte RF Engineering 2.0
+- Modale avec iframe YouTube
+- CSS + JS pour l'ouverture/fermeture (Échap + clic extérieur)
+
+### C. Jobs v4 — 2 catégories RF + Admin
+
+**Contexte :** le marché canadien RF est difficile sans OIQ. Besoin d'un filet de sécurité avec des jobs administratifs/support.
+
+**Solution :** refonte complète du système de veille d'emploi en 2 onglets.
+
+**Fichiers créés/modifiés :**
+
+| Fichier | Rôle |
+|---|---|
+| `fetch_jobs_v4.py` | Script principal (remplace v3) |
+| `fetch_jobs.py` | Copie de v4 (utilisée par GitHub Actions) |
+| `fetch_jobs_v3_OLD.py` | Ancien script (backup) |
+| `jobs.html` | Refonte complète avec 2 onglets |
+| `jobs.json` | Sauvegarde RF + Admin séparées |
+| `jobs_BACKUP_*.html` | Backups automatiques |
+
+**Structure des 2 onglets :**
+
+| Onglet | Contenu | Source |
+|---|---|---|
+| 📡 RF & Télécom | ~246 offres | Adzuna + Remotive |
+| 💼 Missions & Support | ~46 offres | Adzuna (Chicoutimi/Saguenay uniquement) |
+
+**Mots-clés RF :** identiques à v3 + 16 mots-clés élargis
+
+**Mots-clés Admin (Chicoutimi/Saguenay) :**
+- FR : agent administratif, commis de bureau, secrétaire, réceptionniste, service à la clientèle, livreur, magasinier, manutentionnaire, caissier, préposé...
+- EN : receptionist, clerk, warehouse worker, delivery driver, cashier...
+
+**Scoring intelligent :**
+- **RF** : scoring v3 (pénalité étudiant, bonus senior)
+- **Admin** : scoring simple basé sur mots-clés + bonus localisation Chicoutimi/Saguenay (+25pts)
+- Filtre admin : score minimum 10/100
+
+**Nouveau : Bouton "📋 Préparer"**
+
+Sur chaque offre avec score ≥ 50, un bouton permet de :
+1. Télécharger un fichier `offre_XXX.txt` au format `manual_offer.txt`
+2. Copier ce fichier dans le dossier `Mon site/` en le renommant `manual_offer.txt`
+3. Lancer `python prepare_manual.py` → 3 documents générés (CV + lettre + prépa)
+
+**Format du fichier téléchargé :**
+TITLE: <titre>
+COMPANY: <entreprise>
+LOCATION: <lieu>
+URL: <lien>
+
+DESCRIPTION:
+<description complète>
+
+
+### D. Marqueurs HTML pour injection automatique
+
+Pour éviter la corruption du HTML à chaque exécution (comme dans l'ancienne version), on utilise maintenant des **marqueurs** :
+
+```html
+<!-- RF_JOBS_START -->
+...
+<!-- RF_JOBS_END -->
+
+<!-- ADMIN_JOBS_START -->
+...
+<!-- ADMIN_JOBS_END -->
+
