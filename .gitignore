@@ -8,3 +8,11 @@ env/
 .DS_Store
 Thumbs.db
 *.log
+# Fichiers sensibles / démo
+SSH.txt
+debug_*.png
+videos_demo/
+narration.mp3
+demo_rf_engineering.mp4
+demo_recorder.py
+voice_over.py
