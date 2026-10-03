@@ -1216,3 +1216,199 @@ Pour éviter la corruption du HTML à chaque exécution (comme dans l'ancienne v
 - 5 tables : tenants, users, kpi_history, bulletins, alerts
 
 **Prochaine étape :** authentification JWT + multi-tenancy
+
+---
+
+## 23. Mise à jour du 2 octobre 2026 — RF Analytics : Backend complet
+
+### Statut : Backend multi-tenant + pipeline d'ingestion opérationnels ✅
+
+### A. Nouveau repo créé
+
+**Repo GitHub :** https://github.com/mmjt2000/rf-analytics (privé)
+**Dossier local :** `C:\Dev\rf-analytics`
+
+### B. Structure du projet (44+ fichiers)
+rf-analytics/
+├── backend/
+│ ├── app/
+│ │ ├── main.py ← Point d'entrée FastAPI
+│ │ ├── config.py ← Chargement .env
+│ │ ├── database.py ← SQLAlchemy + PostgreSQL
+│ │ ├── dependencies.py ← JWT get_current_user
+│ │ ├── models/ ← 5 modèles SQLAlchemy
+│ │ ├── schemas/ ← Pydantic (user, tenant, kpi)
+│ │ ├── services/ ← auth, tenant, ingestion
+│ │ ├── routers/ ← auth, kpis
+│ │ ├── workers/ ← ingestion_worker
+│ │ └── templates/ ← bulletin.html
+│ └── requirements.txt
+├── frontend/ ← (vide pour l'instant)
+├── scripts/init_db.sql ← Création des 5 tables
+├── docker-compose.yml ← db + backend + worker
+├── Dockerfile ← python:3.12-slim-bookworm
+└── .env ← Local (gitignored)
+
+
+### C. Tables PostgreSQL + TimescaleDB
+
+| Table | Rôle | Statut |
+|---|---|---|
+| `tenants` | Multi-tenancy + branding | ✅ |
+| `users` | Utilisateurs (JWT) | ✅ |
+| `kpi_history` | **Hypertable TimescaleDB** | ✅ |
+| `bulletins` | Bulletins de santé (à venir) | ✅ |
+| `alerts` | Alertes intelligentes (à venir) | ✅ |
+
+**Tenant par défaut :** `Digicel Haïti` (id=1, slug `digicel-ht`)
+
+### D. Authentification JWT
+
+**Routes actives :**
+| Route | Méthode | Description |
+|---|---|---|
+| `/api/auth/signup` | POST | Créer tenant + admin |
+| `/api/auth/login` | POST | Obtenir un JWT |
+| `/api/auth/me` | GET | Profil (protégé) |
+
+**Compte de test :**
+- Email : `admin@test.com`
+- Mot de passe : `Test1234!`
+- Tenant : `Test Réseau` (id=1)
+
+**Sécurité :**
+- bcrypt==4.0.1 (épinglé — bcrypt 5.x incompatible avec passlib)
+- JWT HS256, expiration 24h
+- `SECRET_KEY` dans `.env`
+
+### E. API KPI (nouvelles routes)
+
+| Route | Méthode | Description |
+|---|---|---|
+| `/api/kpis/summary` | GET | Agrégation sur N heures |
+| `/api/kpis/history` | GET | Historique paginé |
+| `/api/kpis/cell/{cell_id}` | GET | KPI d'une cellule |
+| `/api/kpis/top-sites` | GET | Top/Flop cellules |
+
+Toutes protégées par JWT + filtre par `tenant_id`.
+
+### F. Pont RF Engineering → RF Analytics
+
+**Côté RF Engineering 2.0 :** Nouvelle route `/api/export/kpis` dans `backend/app/routers/export.py`
+
+- Authentification : Header `X-API-Key`
+- Clé partagée : `shared-secret-rf-analytics-2026` (dans `.env` des 2 projets)
+- Retourne : liste des 54 cellules avec tous leurs KPI (format JSON)
+
+**Côté RF Analytics :** Service d'ingestion `backend/app/services/ingestion_service.py`
+
+- Appelle `RF_ENGINEERING_URL/api/export/kpis` via httpx
+- Stocke dans `kpi_history` (TimescaleDB)
+- URL locale : `http://host.docker.internal:8000` (Docker → PC Windows)
+
+### G. Worker automatique
+
+**Fichier :** `backend/app/workers/ingestion_worker.py`
+
+- Boucle infinie, **intervalle 300 secondes** (5 min)
+- Ingère pour les tenants listés dans `TENANTS_TO_INGEST = [1]`
+- Tourne comme **service séparé** dans docker-compose
+- Logs : `docker compose logs worker`
+
+**Test validé :** 7 cycles × 54 cellules = **378 lignes** dans `kpi_history`
+
+### H. Résultats de test
+
+```powershell
+# Test /api/kpis/summary (heures=24)
+tenant_id          : 1
+total_cells        : 54
+total_samples      : 378
+avg_health         : 87.24
+avg_rsrp           : -89.18
+avg_sinr           : 14.03
+avg_dl_throughput  : 39.78
+avg_drop_call_rate : 0.0083
+avg_rrc_setup_sr   : 98.53
+avg_prb_util       : 0.5937
+
+ Corrections importantes
+1. Dockerfile : python:3.12-slim ne fonctionne PAS
+
+Erreur : Playwright ne trouve pas les paquets Debian 13 (Trixie)
+
+Solution : utiliser python:3.12-slim-bookworm (Debian 12 stable)
+
+2. Uvicorn côté RF Engineering :
+
+Par défaut : écoute sur 127.0.0.1 (inaccessible depuis Docker)
+
+Obligatoire : --host 0.0.0.0 pour que le conteneur puisse l'appeler
+
+3. .env ne se recharge PAS avec docker compose restart
+
+Il faut docker compose up -d --force-recreate après modif du .env
+
+4. Alignement tenant_id :
+
+Le user admin@test.com peut être sur un tenant différent de celui ingéré
+
+Corriger avec : UPDATE users SET tenant_id = 1 WHERE email = 'admin@test.com';
+
+J. Commandes de démarrage
+RF Analytics :
+cd C:\Dev\rf-analytics
+docker compose up -d
+docker compose logs worker  # vérifier l'ingestion
+
+RF Engineering 2.0 (en parallèle) :
+
+cd C:\Dev\rf-engineering-2-0\backend
+.\venv\Scripts\Activate.ps1
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+Accès :
+
+RF Analytics API : http://localhost:8001/docs
+
+RF Engineering API : http://127.0.0.1:8000/docs
+
+K. Sécurité — À régénérer
+⚠️ Clé Adzuna (exposée dans chat) → à régénérer sur https://developer.adzuna.com
+
+⚠️ Clé Groq (exposée dans chat) → à régénérer sur https://console.groq.com
+
+⚠️ Token GitHub (si partagé) → à régénérer
+
+L. Prochaines étapes — Session suivante
+Priorité 1 : Frontend RF Analytics (login + dashboard)
+Priorité 2 : Service de bulletins PDF (killer feature)
+Priorité 3 : Service d'alertes (détection anomalies)
+Priorité 4 : Stripe Billing
+Priorité 5 : Déploiement (Render ou Cloudflare Tunnel)
+
+M. Notes importantes
+Docker Desktop doit être lancé avant docker compose up
+
+Le worker tourne en arrière-plan (500 MB RAM)
+
+La base TimescaleDB compresse après 7 jours (policy à activer)
+
+Multi-tenancy : tenant_id filtré automatiquement via get_current_tenant_id
+
+text
+
+---
+
+## 🔹 Puis commit + push
+
+Dans PowerShell :
+
+```powershell
+cd C:\Dev\rf-engineering-2-0
+git add PASSATION.md
+git commit -m "PASSATION: section 23 - RF Analytics backend complet + pipeline"
+git push
+
+
+
