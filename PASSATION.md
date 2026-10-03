@@ -1639,5 +1639,59 @@ Fais l'Étape 1 (éditer) + Étape 2 (commit/push) et dis-moi quand c'est fait. 
 
 Ensuite on pourra faire le bilan de la session. 🎯
 
+---
+
+## 25. Mise à jour du 3 octobre 2026 — RF Analytics : Frontend + Alertes + Scheduler + Stripe + Déploiement
+
+### Statut : RF Analytics EN LIGNE via Cloudflare Tunnel ✅
+
+### URL publique (temporaire)
+
+https://ordinary-corporations-russell-looksmart.trycloudflare.com
+
+⚠️ URL change à chaque redémarrage de `cloudflared`. Pour URL fixe → acheter un domaine.
+
+### Fonctionnalités ajoutées
+
+**Frontend complet :**
+- `frontend/login.html` — page de connexion
+- `frontend/index.html` — dashboard (KPI + alertes)
+- `frontend/billing.html` — page d'abonnement Stripe
+- `frontend/css/style.css` — design cohérent
+- `frontend/js/auth.js` — helpers JWT
+
+**Service d'alertes :**
+- Détection automatique : DCR, DL, RRC SR, PRB, Health
+- Seuils : critical / high / medium
+- 4 endpoints : `/scan`, `/`, `/{id}/acknowledge`, `/{id}/resolve`
+
+**Scheduler automatique :**
+- Scan alertes : toutes les heures
+- Bulletins : lundi 8h UTC
+- Container dédié : `rf-analytics-scheduler`
+
+**Stripe Billing :**
+- `stripe_service.py` + `billing.py`
+- 3 endpoints : `/plans`, `/checkout`, `/webhook`
+- 2 plans : Starter (390$), Pro (1490$)
+
+### Docker Compose (4 services)
+
+| Service | Rôle |
+|---|---|
+| `db` | PostgreSQL + TimescaleDB |
+| `backend` | FastAPI + uvicorn |
+| `worker` | Ingestion KPI (5 min) |
+| `scheduler` | Alertes + bulletins auto |
+
+### Commandes
+
+```powershell
+# Démarrer
+cd C:\Dev\rf-analytics
+docker compose up -d
+
+# Tunnel Cloudflare
+cloudflared tunnel --url http://localhost:8001
 
 
