@@ -1410,5 +1410,234 @@ git add PASSATION.md
 git commit -m "PASSATION: section 23 - RF Analytics backend complet + pipeline"
 git push
 
+---
+
+## 24. Mise à jour du 3 octobre 2026 — RF Analytics : Bulletins PDF
+
+### Statut : Killer feature opérationnelle ✅
+
+### A. Nouveaux services
+
+| Fichier | Rôle |
+|---|---|
+| `backend/app/services/analytics_service.py` | Agrégation des KPI (scores, breakdown, tendances) |
+| `backend/app/services/bulletin_service.py` | Génération PDF via Jinja2 + Playwright |
+
+### B. Nouvelles routes API
+
+| Route | Méthode | Description |
+|---|---|---|
+| `/api/bulletins/generate` | POST | Génère un bulletin (retourne chemins) |
+| `/api/bulletins/` | GET | Liste les bulletins existants |
+| `/api/bulletins/download/{filename}` | GET | Télécharge un PDF |
+
+### C. Template bulletin
+
+- Fichier : `backend/app/templates/bulletin.html`
+- ~347 lignes (HTML + CSS + Jinja2)
+- Design multi-tenant (couleurs configurables par tenant)
+- Sections : Score global, KPI, Tendance, Top problèmes, Top succès, Impact business
+
+### D. Test validé
+
+**Bulletin généré :**
+- Health Score : **86/100**
+- PDF : 265 Ko
+- Nom : `bulletin_DigicelHaiti_20261003_165922.pdf`
+
+### E. Corrections importantes
+
+**1. `config.py` — `BASE_DIR` corrigé**
+```python
+# AVANT (mauvais) :
+BASE_DIR = Path(__file__).parent.parent.parent
+
+# APRÈS (correct) :
+BASE_DIR = Path(__file__).parent.parent
+
+Raison : config.py est dans backend/app/, donc parent.parent = backend/ (racine du projet).
+
+2. Slugification des noms de fichiers
+
+Problème : Digicel Haïti → accents (ï) cassaient les URLs
+
+Solution : unicodedata.normalize("NFKD", ...) pour retirer les accents
+
+Résultat : bulletin_DigicelHaiti_...pdf (sans tréma)
+
+F. Docker — Accès aux fichiers générés
+Volume monté : ./backend:/app → les PDFs sont directement accessibles sur le PC dans C:\Dev\rf-analytics\backend\bulletins\
+
+Plus besoin de docker cp (qui bug sur Windows avec certains noms)
+
+G. Commandes de test
+powershell
+# Générer un bulletin (via Swagger)
+POST /api/bulletins/generate?hours=168
+
+# Le PDF apparaît dans :
+C:\Dev\rf-analytics\backend\bulletins\bulletin_*.pdf
+
+# Ou télécharger via API :
+GET /api/bulletins/download/bulletin_*.pdf
+H. Prochaine session
+Options :
+
+🎨 Frontend RF Analytics (page login + dashboard)
+
+🚨 Service d'alertes (détection anomalies)
+
+📅 Scheduler (génération auto hebdo + envoi email)
+
+💳 Stripe Billing
+
+🚀 Déploiement (Cloudflare Tunnel + Render)
+
+text
+
+Puis :
+
+```powershell
+cd C:\Dev\rf-engineering-2-0
+git add PASSATION.md
+git commit -m "PASSATION: section 24 - bulletins PDF opérationnels"
+git push
+📋 Récapitulatif
+#	Action	Statut
+1	Commit + push rf-analytics	⏳
+2	Update PASSATION.md	⏳
+3	Commit + push rf-engineering-2-0	⏳
+Fais les 3 étapes et dis-moi si tout est pushé. 🚀
+
+Ensuite on peut :
+
+🅰️ S'arrêter là (belle session)
+
+🅱️ Continuer avec une autre fonctionnalité
+
+Excellent boulot, amigo ! 🎉
+
+The user pushed successfully. The commit was "Feature: génération de bulletins PDF + API download" and it succeeded (3d1ee2..4e81181 main -> main). Now let's update the PASSATION.md.
+
+🎉 Commit + push réussis !
+
+text
+[main 4e81181] Feature: génération de bulletins PDF + API download
+ 7 files changed, 1439 insertions(+)
+
+To https://github.com/mmjt2000/rf-analytics.git
+   3d1ee2..4e81181  main -> main ✅
+🔹 ÉTAPE 1 — Mettre à jour PASSATION.md
+Ouvre C:\Dev\rf-engineering-2-0\PASSATION.md dans VS Code.
+
+Va à la toute fin du fichier et ajoute ceci :
+
+markdown
+---
+
+## 24. Mise à jour du 3 octobre 2026 — RF Analytics : Bulletins PDF
+
+### Statut : Killer feature opérationnelle ✅
+
+### A. Nouveaux services
+
+| Fichier | Rôle |
+|---|---|
+| `backend/app/services/analytics_service.py` | Agrégation des KPI (scores, breakdown, tendances) |
+| `backend/app/services/bulletin_service.py` | Génération PDF via Jinja2 + Playwright |
+
+### B. Nouvelles routes API
+
+| Route | Méthode | Description |
+|---|---|---|
+| `/api/bulletins/generate` | POST | Génère un bulletin (retourne chemins) |
+| `/api/bulletins/` | GET | Liste les bulletins existants |
+| `/api/bulletins/download/{filename}` | GET | Télécharge un PDF |
+
+### C. Template bulletin
+
+- Fichier : `backend/app/templates/bulletin.html`
+- ~347 lignes (HTML + CSS + Jinja2)
+- Design multi-tenant (couleurs configurables par tenant)
+- Sections : Score global, KPI, Tendance, Top problèmes, Top succès, Impact business
+
+### D. Test validé
+
+**Bulletin généré :**
+- Health Score : **86/100**
+- PDF : 265 Ko
+- Nom : `bulletin_DigicelHaiti_20261003_165922.pdf`
+
+### E. Corrections importantes
+
+**1. `config.py` — `BASE_DIR` corrigé**
+```python
+# AVANT (mauvais) :
+BASE_DIR = Path(__file__).parent.parent.parent
+
+# APRÈS (correct) :
+BASE_DIR = Path(__file__).parent.parent
+Raison : config.py est dans backend/app/, donc parent.parent = backend/ (racine du projet).
+
+2. Slugification des noms de fichiers
+
+Problème : Digicel Haïti → accents (ï) cassaient les URLs
+
+Solution : unicodedata.normalize("NFKD", ...) pour retirer les accents
+
+Résultat : bulletin_DigicelHaiti_...pdf (sans tréma)
+
+F. Docker — Accès aux fichiers générés
+Volume monté : ./backend:/app → les PDFs sont directement accessibles sur le PC dans C:\Dev\rf-analytics\backend\bulletins\
+
+Plus besoin de docker cp (qui bug sur Windows avec certains noms)
+
+G. Commandes de test
+powershell
+# Générer un bulletin (via Swagger)
+POST /api/bulletins/generate?hours=168
+
+# Le PDF apparaît dans :
+C:\Dev\rf-analytics\backend\bulletins\bulletin_*.pdf
+
+# Ou télécharger via API :
+GET /api/bulletins/download/bulletin_*.pdf
+H. Prochaine session
+Options :
+
+🎨 Frontend RF Analytics (page login + dashboard)
+
+🚨 Service d'alertes (détection anomalies)
+
+📅 Scheduler (génération auto hebdo + envoi email)
+
+💳 Stripe Billing
+
+🚀 Déploiement (Cloudflare Tunnel + Render)
+
+text
+
+**Sauvegarde (Ctrl+S).**
+
+---
+
+## 🔹 ÉTAPE 2 — Commit + push
+
+Dans PowerShell :
+
+```powershell
+cd C:\Dev\rf-engineering-2-0
+git add PASSATION.md
+git commit -m "PASSATION: section 24 - bulletins PDF opérationnels"
+git push
+📋 Récapitulatif
+#	Action	Statut
+✅	Commit rf-analytics	Fait
+⏳	Éditer PASSATION.md	À faire
+⏳	Commit rf-engineering-2-0	À faire
+Fais l'Étape 1 (éditer) + Étape 2 (commit/push) et dis-moi quand c'est fait. 🚀
+
+Ensuite on pourra faire le bilan de la session. 🎯
+
 
 
