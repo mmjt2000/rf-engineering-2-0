@@ -1694,4 +1694,39 @@ docker compose up -d
 # Tunnel Cloudflare
 cloudflared tunnel --url http://localhost:8001
 
+---
+
+## 25. Mise à jour du 3 octobre 2026 — RF Analytics EN LIGNE
+
+### Statut : Déployé via Cloudflare Tunnel ✅
+
+### URL publique
+https://ordinary-corporations-russell-looksmart.trycloudflare.com/login.html
+
+⚠️ URL change à chaque redémarrage de `cloudflared`.
+
+### Fonctionnalités ajoutées aujourd'hui
+- Frontend : login.html, index.html, billing.html, style.css, auth.js
+- Alertes : détection auto + 4 endpoints API
+- Scheduler : container dédié (alertes 1h + bulletins lundi 8h)
+- Stripe Billing : 3 endpoints + page billing
+- Docker : 4 services (db + backend + worker + scheduler)
+
+### Problème identifié (à corriger plus tard)
+- Le `.env` de RF Analytics contient les `STRIPE_PRICE_*` de RF Engineering
+- Le checkout Stripe affiche "RF Engineering Starter à 490$"
+- À corriger : créer des produits Stripe dédiés à RF Analytics (390$ / 1490$)
+- À faire quand on aura un vrai domaine (pas trycloudflare.com)
+
+### Commande de démarrage
+cd C:\Dev\rf-analytics
+docker compose up -d
+cloudflared tunnel --url http://localhost:8001
+
+### Prochaines étapes
+- Acheter un domaine (~12$/an)
+- Créer produits Stripe RF Analytics + remplacer price_ids
+- Frontend : page Rapports + historique
+- Alertes par email (Resend)
+- Tests unitaires
 
