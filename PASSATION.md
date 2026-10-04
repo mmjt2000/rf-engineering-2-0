@@ -1730,3 +1730,58 @@ cloudflared tunnel --url http://localhost:8001
 - Alertes par email (Resend)
 - Tests unitaires
 
+---
+
+## 26. Mise à jour du 3 octobre 2026 (soir) — RF Analytics complet
+
+### Statut : SaaS 100% fonctionnel ✅
+
+### 5 features ajoutées aujourd'hui
+
+| # | Feature | Fichiers |
+|---|---|---|
+| 1 | Alertes email (Resend) | `email_service.py` + intégration dans `alert_service.py` |
+| 2 | Page Rapports | `reports.html` + route |
+| 3 | Graphiques historiques | Chart.js dans `index.html` + endpoint `/api/kpis/trends` |
+| 4 | Carte réseau | `map.html` + endpoint `/api/kpis/sites-map` (Leaflet + 547 sites) |
+| 5 | Page Paramètres | `settings.html` + `settings.py` (router) + branding multi-tenant |
+
+### Base de données
+
+- **65760 lignes** KPI historiques (seed v2 avec vraies coordonnées)
+- Seed : `backend/app/scripts/seed_history_v2.py`
+
+### Structure frontend finale
+
+- `/login.html` — Connexion JWT
+- `/index.html` — Dashboard (KPI + graphiques + alertes)
+- `/reports.html` — Historique bulletins
+- `/map.html` — Carte interactive
+- `/billing.html` — Plans Stripe
+- `/settings.html` — Paramètres + branding
+
+### Structure API finale
+
+- `/api/auth/*` — Signup, Login, Me
+- `/api/kpis/*` — Summary, History, Trends, Sites-map, Top-sites, Cell/{id}
+- `/api/bulletins/*` — Generate, Download, List
+- `/api/alerts/*` — Scan, List, Acknowledge, Resolve
+- `/api/billing/*` — Plans, Checkout, Webhook
+- `/api/settings/*` — Get, Update (branding)
+
+### Bugs résolus
+
+- Fond de carte CARTO sans clé → remplacé par OpenStreetMap
+- Chart.js hauteur infinie → wrapper `position:relative;height:180px`
+- Cache navigateur bloque onclick → version avec logs + hard refresh
+- Message succès invisible → CSS `position: fixed`
+- Bouton Réinitialiser inactif → restauration depuis `currentSettings`
+- Capacité = 0 dans bulletin → formule `100 - prb_util` (sans `*100`)
+
+### Points de vigilance
+
+- **URL Cloudflare change** à chaque redémarrage de `cloudflared`
+- Stripe : utiliser un **vrai domaine** pour les webhooks
+- `.env` ne se recharge PAS avec `docker compose restart` → `--force-recreate`
+- Le fichier `sites_prives.json` est **gitignored** (ne pas commiter)
+
