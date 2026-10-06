@@ -69,9 +69,8 @@ app.include_router(billing_router.router)
 app.include_router(sites_router.router)
 app.include_router(users_router.router)
 app.include_router(son_router.router)
-app.include_router
+app.include_router(export_router.router)
 app.include_router(auth_router.router)
-
 
 # ============================================================
 #  WEBSOCKET — broadcast KPI temps réel
