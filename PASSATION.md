@@ -1785,3 +1785,243 @@ cloudflared tunnel --url http://localhost:8001
 - `.env` ne se recharge PAS avec `docker compose restart` → `--force-recreate`
 - Le fichier `sites_prives.json` est **gitignored** (ne pas commiter)
 
+
+---
+
+## 27. Mise à jour du 5 octobre 2026 — RF OPTIMIZER TOOLS v5 (RAN Decision Platform)
+
+### Statut : Déployé en ligne ✅
+
+**URL live** : https://rf-optimizer-tools.onrender.com
+**Repo** : https://github.com/mmjt2000/rf-optimizer-tools
+**Local** : `C:\Dev\rf-optimizer-tools`
+**Port** : 3000 (`npx serve -l 3000`)
+
+### Contexte
+
+Suite à la réussite de RF Engineering 2.0 et RF Analytics, création d'un nouvel outil **complémentaire** : un **Field Guide + RAN Decision Platform** multi-vendor pour ingénieurs RF terrain.
+
+**Objectif** : passer de "voir un KPI" à "décider où envoyer le trafic, pourquoi, comment et avec quel risque".
+
+### Architecture
+
+Application **PWA offline-first** en HTML/CSS/JS pur (pas de backend). Déployée sur Render en Static Site. Fonctionne 100% hors-ligne.
+
+**Structure** :
+
+rf-optimizer-tools/
+├── index.html
+├── manifest.json
+├── sw.js (Service Worker)
+├── css/style.css
+├── js/
+│ ├── app.js (navigation + recherche globale)
+│ ├── troubleshooting.js (43 problèmes × 4 vendors)
+│ ├── calculators.js (6 calculateurs)
+│ ├── downtilt.js (Auto-Tilt Optimizer)
+│ ├── referentiel.js (27 paramètres × 4 vendors)
+│ ├── cheatsheets.js (126 commandes × 4 vendors)
+│ ├── kpi.js (33 KPI × 4 technos)
+│ ├── traffic.js (Phase 1 — Traffic Engineering)
+│ ├── traffic-steering.js (Phase 2 — Traffic Steering)
+│ ├── traffic-mobility.js (Phase 3 — Mobility & ANR)
+│ ├── traffic-capacity.js (Phase 4 — Capacity Models)
+│ ├── capacity-batch.js (Batch CSV cluster)
+│ └── traffic-viz.js (Phase 5 — Visualization + Chart)
+└── data/
+├── events/ (35 événements)
+├── troubleshooting/ (43 problèmes + index)
+├── calculators/ (6 calculateurs)
+├── referentiel/ (4 fichiers techno)
+├── cheatsheets/ (4 vendors)
+├── kpi/ (4 fichiers techno)
+└── traffic/ (Phase 1-5 + templates CSV)
+
+text
+
+### 10 modules métier
+
+| # | Module | Contenu | Badge |
+|---|---|---|---|
+| 1 | 🎯 Événements Spéciaux | 35 événements / 4 catégories | 35 |
+| 2 | 📋 Troubleshooting | 43 problèmes × 4 vendors | 172 |
+| 3 | 🧮 Calculateurs RF | 6 dont Downtilt + Auto-Tilt | 6 |
+| 4 | 📚 Référentiel Paramètres | 27 × 4 vendors | 27 |
+| 5 | ⌨️ Cheatsheets Commandes | MML/Moshell/ZEEI/CLI | 126 |
+| 6 | 🚨 KPI & Seuils | 33 KPI × 4 technos | 33 |
+| 7 | ⚖️ Traffic Engineering | 9 sous-modules | 9 |
+| 8 | 🚗 Mobility & ANR | 4 sous-modules | 4 |
+| 9 | 📻 Capacity Models | 4 + Batch CSV | 4 |
+| 10 | 📊 Visualization | 4 sous-modules + Chart | 4 |
+
+**+ Recherche globale** dans le header (multi-modules).
+
+### Multi-vendor couvert
+
+**4 vendors** : Huawei (MML) · Ericsson (AMOS/Moshell) · Nokia (ZEEI) · Samsung (CLI)
+
+### Mécanismes d'ingénierie RF (le point fort)
+
+**Phase 1 — Traffic Engineering**
+- KPI Load Analyzer (16 KPIs, 4G/5G/3G/2G)
+- Capacity Headroom (available, max safe offload)
+- Busy Hour Engineering (BH vs moyenne)
+- RF Root Cause Engine (5 hypothèses avec confidence)
+
+**Phase 2 — Traffic Steering ("CAN I OFFLOAD ?")**
+- Candidate Cell Finder (intra/inter-freq/inter-RAT)
+- Eligibility Checker (10 critères, hard constraints éliminent)
+- Traffic Steering Score (7 dimensions pondérées)
+- Offload Simulator (Before/After source + target)
+- Risk Engine (LOW/MEDIUM/HIGH)
+
+**Phase 3 — Mobility & ANR**
+- Mobility Optimizer (Too Early/Late/Ping-Pong/Wrong Cell)
+- ANR Analysis (mode single + batch CSV de N relations)
+- PCI Validation (collision, mod-3 confusion)
+- Mobility Gating (bloque offload si mobilité cassée)
+
+**Phase 4 — Capacity Models** (par techno, pas de score générique)
+- 2G Erlang B (TCH, SDCCH, TRX requirement)
+- 3G CE/Power (bottleneck detection)
+- LTE PRB/PDCCH (theoretical vs effective)
+- 5G NR PRB/QoS (SCS, MIMO layers, offload potential)
+- **Mode Batch CSV** pour cluster 50-500 cellules
+
+**Phase 5 — Visualization**
+- Before/After Optimization (simulateur multi-tech 2G/3G/4G/5G)
+- Traffic Forecast (scénarios + BH + événements)
+- Cluster Heatmap
+- Before/After Comparator (KPIs au choix par techno)
+- **Chart export** : 3 types (Barres/Radar/Lignes) + PNG + copie presse-papier
+
+### Templates CSV disponibles
+
+- `data/traffic/templates/candidates_template.csv`
+- `data/traffic/templates/anr_relations_template.csv`
+- `data/traffic/templates/capacity_2g_batch.csv`
+- `data/traffic/templates/capacity_3g_batch.csv`
+- `data/traffic/templates/capacity_lte_batch.csv`
+- `data/traffic/templates/capacity_5g_batch.csv`
+
+### Déploiement
+
+- **Hébergement** : Render Static Site
+- **Déploiement** : auto sur `git push origin main`
+- **URL** : https://rf-optimizer-tools.onrender.com
+- **Cache CDN** : après push, forcer Manual Deploy sur Render
+- **Cache navigateur** : Ctrl+Shift+Suppr si vieille version
+
+### Points de vigilance
+
+1. **Fenêtre PowerShell serveur doit rester ouverte** pendant `npx serve`
+2. **JSON sensible aux virgules** — VS Code signale les erreurs
+3. **Cache navigateur agressif** — toujours tester en nav privée si doute
+4. **Render met 1-2 min** à redéployer après push
+5. **git pull --rebase obligatoire** avant push si GitHub Actions a tourné
+6. **Ne jamais travailler depuis OneDrive** pour les projets code
+
+### Roadmap restante
+
+| Phase | Contenu |
+|---|---|
+| **Phase 6** | SON Layer (MLB, MRO, ANR, CCO, Energy Saving) |
+| Bonus | Multi-Antenna (3 secteurs 0/120/240°) |
+| Bonus | Antenna Pattern Real (vrai lobe + side lobes) |
+| Bonus | Export PDF complet d'une analyse |
+| Bonus | Favoris / Historique analyses |
+
+### Lien portfolio
+
+Carte ajoutée sur https://mon-site-rf.onrender.com dans la section "03 · Projets" :
+
+> **🔧 RF Optimizer Tools — Field Guide multi-vendor**
+> Application web progressive (PWA) pour ingénieurs RF terrain.
+> 6 modules : 43 problèmes de troubleshooting (× 4 vendors Huawei/Ericsson/Nokia/Samsung),
+> 35 événements spéciaux, 6 calculateurs RF (dont Downtilt avec visuel + carte secteur),
+> 27 paramètres référentiel, 126 commandes (MML, Moshell, ZEEI, CLI Samsung)
+> et 33 KPI avec seuils par techno. Fonctionne 100% hors-ligne.
+
+### Leçon de la session
+
+Construction **incrémentale** d'une plateforme RF complète en une journée :
+- Chaque module est **autonome** mais **interconnecté** (recherche globale)
+- Pattern **CSV batch** réutilisé (ANR, Capacity Models)
+- Pattern **single + batch** pour flexibilité terrain
+- **Multi-vendor** systématique dès le départ
+
+**Total approximatif** : ~3500 lignes de code, ~60 fichiers, ~500 lignes CSS.
+
+---
+
+## 28. Référence rapide RF Optimizer Tools
+
+### Démarrer en local
+
+```powershell
+cd C:\Dev\rf-optimizer-tools
+npx serve -l 3000
+Puis : http://localhost:3000
+
+Déployer
+powershell
+cd C:\Dev\rf-optimizer-tools
+git add .
+git commit -m "Description du changement"
+git pull --rebase
+git push
+Puis : Render → Manual Deploy → Deploy latest commit
+
+Diagnostic erreurs courantes
+Symptôme	Cause	Fix
+Module ne charge pas	JSON mal formé	VS Code → format JSON (virgule)
+Vieux contenu	Cache navigateur	Ctrl+Shift+Suppr
+404 sur JSON	Pas déployé	Render Manual Deploy
+Console erreurs rouges	Script mal chargé	Vérifier <script src="/js/xxx.js?v=N">
+Fenêtre fermée	Serveur arrêté	Relancer npx serve -l 3000
+Bonnes pratiques
+ID cohérents : moduleName-action-element
+
+Backup : .json.bak avant modif massive
+
+UTF-8 sans BOM (VS Code, pas PowerShell)
+
+Tester en nav privée après chaque modif majeure
+
+Pattern single + batch quand possible
+
+Dernière mise à jour : 5 octobre 2026
+Version RF Optimizer Tools : v5.0 (RAN Decision Platform)
+Statut : Production (Render live)
+
+text
+
+**`Ctrl+S`**
+
+---
+
+## 📦 ÉTAPE 3 — Commit + Push
+
+**PowerShell** :
+```powershell
+cd C:\Dev\rf-engineering-2-0
+git add PASSATION.md
+git commit -m "PASSATION: sections 27-28 - RF Optimizer Tools v5 (RAN Decision Platform)"
+git pull --rebase
+git push
+Attendu :
+
+text
+[main abc1234] PASSATION: sections 27-28 - RF Optimizer Tools v5...
+ 1 file changed, XXX insertions(+)
+To https://github.com/mmjt2000/rf-engineering-2-0.git
+   xxxx..yyyy  main -> main
+🎯 ÉTAPE 4 — Vérifie sur GitHub
+Ouvre :
+
+text
+https://github.com/mmjt2000/rf-engineering-2-0/blob/main/PASSATION.md
+Scroll en bas → tu dois voir les sections 27 et 28.
+
+Colle, sauvegarde, commit, push, envoie la sortie PowerShell, amigo. 🫡
+
