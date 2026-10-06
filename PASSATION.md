@@ -2025,3 +2025,236 @@ Scroll en bas → tu dois voir les sections 27 et 28.
 
 Colle, sauvegarde, commit, push, envoie la sortie PowerShell, amigo. 🫡
 
+
+---
+
+## 29. Mise à jour du 6 octobre 2026 — RF OPTIMIZER TOOLS v6 (SON Layer + Reports)
+
+### Statut : Complète & déployée ✅
+
+**URL live** : https://rf-optimizer-tools.onrender.com
+**Repo** : https://github.com/mmjt2000/rf-optimizer-tools
+**Local** : `C:\Dev\rf-optimizer-tools`
+
+### Nouveautés de la session
+
+**3 grands ajouts** par rapport à v5 :
+
+1. **🎛️ SON Layer** (Phase 6 — Self-Organizing Network)
+2. **📄 Module Rapports** (générateur PDF multi-types)
+3. **🔍 Recherche globale étendue** (12 modules + sous-modules indexés)
+
+### 12 modules métier
+
+| # | Module | Contenu | Badge |
+|---|---|---|---|
+| 1 | 🎯 Événements Spéciaux | 35 événements / 4 catégories | 35 |
+| 2 | 📋 Troubleshooting | 43 problèmes × 4 vendors | 172 |
+| 3 | 🧮 Calculateurs RF | 6 dont Downtilt + Auto-Tilt | 6 |
+| 4 | 📚 Référentiel Paramètres | 27 × 4 vendors | 27 |
+| 5 | ⌨️ Cheatsheets Commandes | MML/Moshell/ZEEI/CLI | 126 |
+| 6 | 🚨 KPI & Seuils | 33 KPI × 4 technos | 33 |
+| 7 | ⚖️ Traffic Engineering | 9 sous-modules | 9 |
+| 8 | 🚗 Mobility & ANR | 4 sous-modules | 4 |
+| 9 | 📻 Capacity Models | 4 + Batch CSV | 4 |
+| 10 | 📊 Visualization | 4 + Chart export | 4 |
+| 11 | 🎛️ SON Layer | 8 sous-modules | 8 |
+| 12 | 📄 Rapports | 4 types PDF | 4 |
+
+**Grille 4×3 parfaite sur la home.**
+
+### SON Layer — Détail
+
+**8 modules basés sur 3GPP TS 36.300/32.5xx** :
+
+| Module | Rôle |
+|---|---|
+| 🎛️ **SON Dashboard** | Vue réseau + KPIs live + feed événements temps réel (rafraîchi toutes les 2.5s) |
+| ⚖️ **MLB** | Mobility Load Balancing — détection surcharge + offload auto avec distribution |
+| 🔄 **MRO** | Mobility Robustness Optimization — auto-correction Too Early/Late/Ping-Pong |
+| 🔗 **ANR** | Automatic Neighbor Relations — détection missing/extra + PCI conflicts |
+| 📡 **CCO** | Coverage & Capacity Optimization — auto-ajustement tilt/power/azimuth |
+| 🌱 **ES** | Energy Saving — mise en veille cellules sous-charge + impact économique |
+| 🛡️ **ICIC** | Inter-Cell Interference Coordination — eICIC / FeICIC / FFR |
+| ⚙️ **SON Policies** | Configuration seuils, actions auto, gating |
+
+**Fonctionnalités notables** :
+- **Feed d'événements SON en LIVE** (SET / CLEAR / UPDATE toutes les 2.5s)
+- **Bouton Pause/Reprendre** sur le feed
+- **Compteurs dynamiques** (actions actives / en attente / bloquées)
+- Chaque module propose des **actions auto** avec impact estimé
+
+### Module Rapports — Détail
+
+**4 types de rapports PDF générés automatiquement** :
+
+| Rapport | Contenu |
+|---|---|
+| 📊 **KPI Weekly** | 12 KPIs + synthèse + recommandations |
+| 🎯 **Optimisation** | Before/After + delta % + conclusions |
+| 🚨 **Incident** | Symptôme + cause + action + timeline + impact |
+| 📡 **Cluster** | Cellules critiques + warning + recommandations |
+
+**Stack technique** :
+- `jsPDF` (CDN) — génération PDF
+- `html2canvas` (CDN) — capture sections HTML
+- CSS PDF séparé (light theme pour impression)
+
+**Fonctionnalités** :
+- En-tête avec logo + ingénieur + date
+- Sections sélectionnables
+- Graphiques Chart.js intégrés
+- Téléchargement direct `.pdf`
+- Design professionnel (rapport client-ready)
+
+### Recherche globale — Amélioration
+
+**Avant** : indexait uniquement 4 modules (Troubleshooting, Événements, Calculateurs, Référentiel)
+
+**Maintenant** : indexe **12 modules + sous-modules** :
+- Tous les modules principaux
+- Tous les sous-modules (KPI Load, MLB, MRO, ANR, CCO, ES, ICIC, etc.)
+- Résultats groupés par type avec compteur
+- Actions cliquables (ouverture directe du module ciblé)
+
+### Grille home corrigée
+
+**Avant** : 11 cartes = 5+5+1 (dernière orpheline)
+
+**Maintenant** : 12 cartes = **4×3 parfaite**
+
+**CSS** :
+```css
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1000px) { .modules-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .modules-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 450px)  { .modules-grid { grid-template-columns: 1fr; } }
+
+Nouveaux fichiers ajoutés
+js/
+├── traffic-son.js        (SON Layer — 8 modules)
+└── reports.js            (4 rapports PDF)
+
+data/traffic/
+├── son_index.json        (8 modules SON)
+└── reports_index.json    (4 types rapports)
+
+Dépendances CDN ajoutées
+Dans <head> de index.html :
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+Points de vigilance
+Recherche globale : après ajout d'un nouveau module, mettre à jour _loadSearchData() et performGlobalSearch() dans app.js
+
+SON feed : le setInterval doit être nettoyé quand on quitte le Dashboard (clearInterval(sonFeedInterval))
+
+PDF generation : nécessite les CDN jsPDF + html2canvas chargés AVANT l'appel
+
+Grille home : pour un 13ème module, prévoir 4+4+4+1 → reconsidérer le layout (peut-être 5 colonnes avec minmax(180px, 1fr))
+
+Récap des modules avec sous-modules
+Module parent	Sous-modules
+⚖️ Traffic Engineering	9 (KPI Load, Headroom, Busy Hour, Root Cause, Candidate Finder, Eligibility, Score, Simulator, Risk)
+🚗 Mobility & ANR	4 (HO Optimizer, ANR, PCI, Gating)
+📻 Capacity Models	4 (2G, 3G, LTE, 5G) + Batch CSV
+📊 Visualization	4 (Before/After, Forecast, Heatmap, Comparator) + Chart export
+🎛️ SON Layer	8 (Dashboard, MLB, MRO, ANR, CCO, ES, ICIC, Policies)
+📄 Rapports	4 (KPI, Optimisation, Incident, Cluster)
+Total : 33 sous-modules actifs.
+
+Roadmap restante
+Aucune phase critique restante. L'app est fonctionnellement complète.
+
+Idées bonus si reprise :
+
+🌐 Multi-Site Map (Leaflet) — carte interactive des sites
+
+📚 Tutoriels RF (guides pas-à-pas pour juniors)
+
+⚙️ Configuration utilisateur (préférences, thème)
+
+📊 History / Favoris (sauvegarde analyses)
+
+30. Référence rapide RF Optimizer Tools v6
+Démarrer en local
+powershell
+cd C:\Dev\rf-optimizer-tools
+npx serve -l 3000
+Puis : http://localhost:3000
+
+Déployer
+powershell
+cd C:\Dev\rf-optimizer-tools
+git add .
+git commit -m "Description du changement"
+git pull --rebase
+git push
+Puis : Render → Manual Deploy → Deploy latest commit
+
+Diagnostic erreurs courantes
+Symptôme	Cause	Fix
+Cannot read properties of null	Section HTML manquante	Ajouter la <section id="module-xxx"> dans index.html
+Module ne charge pas	JSON mal formé	VS Code → format (virgule manquante)
+Vieux contenu	Cache navigateur	Ctrl+Shift+Suppr + fermer Chrome
+404 sur JSON	Pas déployé sur Render	Manual Deploy
+Recherche ne trouve pas	Module pas indexé dans app.js	Ajouter dans _loadSearchData() + performGlobalSearch()
+SW addAll failed	Fichier référencé absent	Vérifier sw.js CACHE_ASSETS
+Structure d'un nouveau module (pattern standard)
+text
+1. data/traffic/xxx_index.json       ← Index des sous-modules
+2. js/traffic-xxx.js                  ← Code du module + exports window
+3. index.html :
+   - Carte dans <div class="modules-grid">
+   - Section #module-xxx + #xxx-detail
+   - <script src="/js/traffic-xxx.js?v=1">
+4. app.js :
+   - Branche dans showModule() : else if (moduleId === 'xxx') { ... }
+   - Ajouter dans _loadSearchData() + performGlobalSearch() + labels
+5. style.css : CSS .xxx-*
+Bump versions après modif
+Fichier modifié	Incrémenter
+app.js	?v=4 → ?v=5
+troubleshooting.js	?v=1001 → ?v=1002
+Nouveau module	?v=1
+Raison : force le navigateur à recharger le script sans cache.
+
+Test avant push
+Ctrl+Shift+R sur http://localhost:3000
+
+Vérifier :
+
+Console F12 → aucune erreur rouge
+
+Clique sur le nouveau module → s'affiche
+
+Recherche globale → trouve le module
+
+Si OK → push + Render Manual Deploy
+
+Dernière mise à jour : 6 octobre 2026
+Version RF Optimizer Tools : v6.0 (RAN Decision Platform — SON + Reports)
+Statut : Production (Render live) · Complet
+12 modules · 33 sous-modules · PWA offline
+
+text
+
+**`Ctrl+S`**
+
+---
+
+## 📦 ÉTAPE 3 — Commit + Push
+
+**PowerShell** :
+```powershell
+cd C:\Dev\rf-engineering-2-0
+git add PASSATION.md
+git commit -m "PASSATION: sections 29-30 - RF Optimizer Tools v6 (SON Layer + Reports + Search fix)"
+git pull --rebase
+git push
