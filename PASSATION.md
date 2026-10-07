@@ -2530,3 +2530,181 @@ Total : 4 apps en ligne, 0$ de coût mensuel. 🎯
 Dernière mise à jour : 6 octobre 2026 (soir)
 Version RF Analytics : v1.0 (Live production)
 Statut : Production · Multi-tenant · Données réelles Haïti (54 sites)
+
+---
+
+## 33. Mise à jour du 7 octobre 2026 — RF ANALYTICS 2.0 (Network Intelligence Platform)
+
+### Statut : 6 modules NSP déployés en ligne ✅
+
+**URL** : https://rf-analytics.onrender.com
+**Repo** : https://github.com/mmjt2000/rf-analytics
+**Local** : `C:\Dev\rf-analytics`
+
+### Vision RF Analytics 2.0
+
+**RF Analytics n'est PAS un toolbox** (c'est le rôle de RF Optimizer Tools).
+
+**C'est un NSP** : Network Intelligence & Decision Support Platform.
+
+**Chaîne de valeur** :
+DATA → INFO → CORRELATION → DIAGNOSIS → DECISION → ACTION → VALIDATION
+
+text
+
+**Règle anti-duplication** :
+- **RF Optimizer Tools** = CALCULATE · TROUBLESHOOT · CONFIGURE · REFERENCE
+- **RF Analytics** = MONITOR · DETECT · CORRELATE · DIAGNOSE · PREDICT · VALIDATE
+
+### 6 modules NSP opérationnels
+
+| # | Module | URL | Description |
+|---|---|---|---|
+| **1** | 🎯 Executive Dashboard | `/executive.html` | 7 scores réseau (Health, Access, Retain, Mobility, Coverage, Capacity, Quality, Availability) + indicateurs NOC |
+| **4** | 🏆 Cell Ranking | `/ranking.html` | Classement composite multi-critères des cellules (worst/best) |
+| **5** | 🚨 Anomaly Detection | `/anomalies.html` | Détection z-score baseline vs current + modal détail + recommandations |
+| **6** | 🔗 KPI Correlation | `/correlation.html` | Matrice Pearson (7×7) + paires fortes + chaînes de causalité |
+| **7** | 🧠 Root Cause Analysis | `/rootcause.html` | Multi-hypothèses avec confiance + preuves + deep-links RF Optimizer |
+| **11** | 🔄 What Changed? | `/whatchanged.html` | Comparaison hier/7j/30j — cellules dégradées/améliorées |
+
+### Architecture API (routers)
+backend/app/routers/
+├── executive.py (3 endpoints : dashboard, worst-cells, trend)
+├── anomalies.py (2 endpoints : scan, detail/{cell})
+├── rootcause.py (2 endpoints : analyze/{cell}, top-causes)
+├── correlation.py (2 endpoints : matrix, chain/{cell})
+├── whatchanged.py (1 endpoint : compare)
+├── ranking.py (2 endpoints : worst, best)
+├── kpis.py (existants)
+├── auth.py, alerts.py, billing.py, bulletins.py, reports.py, settings.py
+
+text
+
+### Deep-links vers RF Optimizer Tools
+
+Chaque hypothèse Root Cause propose un lien contextuel :
+- **Interference** → `/coverage` (Troubleshooting Interférence)
+- **Coverage** → `/coverage` (Troubleshooting Couverture)
+- **Capacity** → `/capacity` (Capacity Models)
+- **Mobility** → `/mobility` (Mobility & ANR)
+- **Quality** → `/integrity` (Troubleshooting Intégrité)
+
+Base URL : `https://rf-optimizer-tools.onrender.com`
+
+### Data Model (6 tables Neon)
+
+| Table | Rôle | Lignes |
+|---|---|---|
+| `tenants` | Multi-tenancy | 1 |
+| `users` | Utilisateurs JWT | 1 (admin@test.com) |
+| `sites` | Coordonnées GPS sites | 547 |
+| `kpi_history` | Historique KPI | 6480 (30j × 54 cellules) |
+| `bulletins` | Bulletins santé réseau | 0 |
+| `alerts` | Alertes | 99 |
+
+### Fichiers clés créés
+
+**Routers** (~2500 lignes) :
+- `executive.py` — Dashboard NOC
+- `anomalies.py` — Détection anomalies
+- `rootcause.py` — Analyse causes racines
+- `correlation.py` — Corrélation KPI
+- `whatchanged.py` — Comparaison jour/jour
+- `ranking.py` — Classement cellules
+
+**Frontend** (~2000 lignes HTML/CSS/JS) :
+- `executive.html`
+- `anomalies.html`
+- `rootcause.html`
+- `correlation.html`
+- `whatchanged.html`
+- `ranking.html`
+
+### Fonctionnalités notables
+
+**Executive Dashboard** :
+- Network Health Score (moyenne pondérée 7 dimensions)
+- 7 cartes de scores avec couleurs conditionnelles
+- Indicateurs NOC (critical, degraded, warning, healthy)
+- Tendance 30 jours (Chart.js)
+- Top 10 pires cellules
+
+**Anomaly Detection** :
+- Z-score baseline vs current
+- Classification sudden/gradual/recurring
+- Modal détail avec recommandations
+- Deep-links RF Optimizer
+
+**Root Cause Analysis** :
+- Multi-hypothèses (Coverage, Interference, Capacity, Mobility, Quality, Hardware)
+- Scores de confiance calculés
+- Preuves détaillées par KPI
+- Actions contextuelles
+
+**KPI Correlation** :
+- Matrice Pearson 7×7
+- Détection paires fortes (|r| > 0.5)
+- Direction positive/négative
+- Visualisation heatmap
+
+**What Changed?** :
+- Comparaison aujourd'hui vs hier/7j/30j
+- Détection cellules dégradées/améliorées
+- Catégorisation par type de problème
+- Tableaux avec deltas détaillés
+
+**Cell Ranking** :
+- Score composite multi-critères
+- Sous-scores par dimension (Access, Retain, Quality, Capacity)
+- Détection problème principal
+- Sévérité automatique
+
+### Points de vigilance
+
+1. **Windows Filesystem quirks** : certains fichiers peuvent être "invisibles" pour PowerShell mais visibles par Python. **Fix** : recréer le fichier (copy + rename).
+2. **Import errors** : vérifier `app/routers/__init__.py` vide (fichier marqueur).
+3. **Venv** : toujours activer avant `python`/`uvicorn` : `.\.venv\Scripts\Activate.ps1`
+4. **Render Free = sleep 15 min** → cold start 50s
+5. **Neon Free = scale to zero** → cold start 10-30s
+
+### Roadmap restante (9 modules optionnels)
+
+- ⏳ 2 — Technology Overview (2G/3G/4G/5G)
+- ⏳ 3 — Network Topology (drill-down Network → Region → Cluster → Site → Cell)
+- ⏳ 8 — Incident Timeline
+- ⏳ 9 — Network Impact Analysis
+- ⏳ 10 — Geographic Network Intelligence
+- ⏳ 12 — Predictive Network Intelligence
+- ⏳ 13 — Optimization Impact Tracking
+- ⏳ 14 — RF Optimizer Tools Integration (deep-links)
+- ⏳ 15 — RF Engineer AI Copilot (Ask RF Analytics)
+
+### Statistiques de la session
+
+- **Durée** : ~8h de développement
+- **Commit** : 7 commits majeurs (module 1 → module 4)
+- **Lignes ajoutées** : ~4500 lignes (routers + frontend)
+- **Modules livrés** : 6 modules NSP complets
+- **Endpoints API** : 12 nouveaux endpoints
+- **Pages HTML** : 6 nouvelles pages
+
+### Commandes utiles
+
+**Local** :
+```powershell
+cd C:\Dev\rf-analytics\backend
+.\.venv\Scripts\Activate.ps1
+uvicorn app.main:app --reload --port 8001
+Compte de test :
+
+Email : admin@test.com
+
+Password : Test1234!
+
+Test un endpoint :
+
+powershell
+python -c "import requests; r=requests.post('http://127.0.0.1:8001/api/auth/login',json={'email':'admin@test.com','password':'Test1234!'}); t=r.json()['access_token']; r1=requests.get('http://127.0.0.1:8001/api/executive/dashboard',headers={'Authorization':'Bearer '+t}); print(r1.json())"
+Dernière mise à jour : 7 octobre 2026 (soir)
+Version RF Analytics : v2.0 (Network Intelligence Platform)
+Statut : Production · 6 modules NSP · Deep-links RF Optimizer Tools
