@@ -2258,3 +2258,275 @@ git add PASSATION.md
 git commit -m "PASSATION: sections 29-30 - RF Optimizer Tools v6 (SON Layer + Reports + Search fix)"
 git pull --rebase
 git push
+
+
+---
+
+## 31. Mise à jour du 6 octobre 2026 (soir) — RF ANALYTICS DÉPLOYÉ EN LIGNE
+
+### Statut : Live sur Render ✅
+
+**URL** : https://rf-analytics.onrender.com
+**Repo** : https://github.com/mmjt2000/rf-analytics
+**Local** : `C:\Dev\rf-analytics`
+
+### Architecture déployée
+
+| Composant | Solution | Coût |
+|---|---|---|
+| **Backend FastAPI** | Render Free Web Service (Docker) | 0$ |
+| **Base de données** | Neon.tech (gratuit, 10 projets) | 0$ |
+| **Frontend** | Servi par FastAPI (`/frontend/`) | 0$ |
+| **Total** | | **0$/mois** |
+
+⚠️ **Note importante** : Passage de Supabase à **Neon** (Supabase = limite 2 projets gratuits + pause auto).
+
+### Base de données Neon
+
+| Info | Valeur |
+|---|---|
+| **Projet Neon** | `rf-analytics` |
+| **Région** | AWS US East 2 (Ohio) |
+| **Host** | `ep-mute-wildflower-b41q395t-pooler.c-8.us-east-2.aws.neon.tech` |
+| **Database** | `neondb` |
+| **User** | `neondb_owner` |
+| **DATABASE_URL** | Dans `.env` local + variables Render |
+
+⚠️ **Driver** : `postgresql+psycopg://` (avec `+psycopg` pour SQLAlchemy v2)
+⚠️ **Retiré** : `&channel_binding=require` (bug connu avec psycopg v3 sur Windows)
+
+### Tables Neon (6 tables)
+
+| Table | Rôle | Lignes |
+|---|---|---|
+| `tenants` | Multi-tenancy | 1 (Digicel Haïti) |
+| `users` | Utilisateurs (JWT) | 1 (admin@test.com) |
+| `sites` | Coordonnées GPS des sites | **547** |
+| `kpi_history` | Historique KPI | **6480** |
+| `bulletins` | Bulletins santé réseau | 0 (à générer) |
+| `alerts` | Alertes intelligentes | 0 (worker à activer) |
+
+### Comptes de test
+
+| Email | Password | Tenant | Plan |
+|---|---|---|---|
+| `admin@test.com` | `Test1234!` | Digicel Haïti | trial |
+
+⚠️ **À changer** : mot de passe Neon exposé pendant le debug (à reset).
+
+### Fichiers clés (repo rf-analytics)
+rf-analytics/
+├── backend/
+│ ├── Dockerfile ← Image Render
+│ ├── requirements.txt ← psycopg[binary]>=3.2.0
+│ ├── main.py ← Wrapper Uvicorn (from app.main import app)
+│ ├── sites_prives.json ← 547 sites GPS (gitignored)
+│ ├── app/
+│ │ ├── main.py ← FastAPI + routes HTML
+│ │ ├── config.py ← Env vars (DATABASE_URL, SECRET_KEY, etc.)
+│ │ ├── database.py ← SQLAlchemy engine
+│ │ ├── models/
+│ │ │ ├── init.py ← Export Base + tous les modèles
+│ │ │ ├── tenant.py
+│ │ │ ├── user.py
+│ │ │ ├── kpi_history.py
+│ │ │ ├── bulletin.py
+│ │ │ ├── alert.py
+│ │ │ └── site.py ← NOUVEAU
+│ │ ├── routers/
+│ │ │ ├── auth.py
+│ │ │ ├── kpis.py ← /sites-map lit depuis DB
+│ │ │ ├── bulletins.py
+│ │ │ ├── alerts.py
+│ │ │ ├── billing.py
+│ │ │ └── settings.py
+│ │ ├── services/
+│ │ ├── workers/
+│ │ │ ├── ingestion_worker.py ← À activer
+│ │ │ └── scheduler_worker.py ← À activer
+│ │ └── scripts/
+│ │ └── init_db.sql ← Création tables
+│ ├── scripts/
+│ │ ├── seed_kpi_history.py ← 6480 lignes KPI (basé sur vrais sites)
+│ │ └── seed_sites.py ← 547 sites GPS
+│ └── frontend/
+│ ├── login.html ← Page connexion
+│ ├── index.html ← Dashboard principal
+│ ├── reports.html ← Historique bulletins
+│ ├── map.html ← Carte réseau (Leaflet)
+│ ├── settings.html ← Paramètres + branding
+│ ├── billing.html ← Plans Stripe
+│ ├── js/auth.js ← Helpers JWT
+│ └── css/style.css
+└── scripts/
+└── init_db.sql ← SQL création tables (TimescaleDB désactivé)
+
+text
+
+### Modifications critiques du code
+
+**1. `app/config.py`** :
+```python
+BASE_DIR = Path(__file__).parent.parent  # backend/
+FRONTEND_DIR = BASE_DIR / "frontend"     # backend/frontend/
+SECRET_KEY = os.environ.get("SECRET_KEY", "change-me")
+2. main.py (racine backend) :
+
+python
+from app.main import app
+3. app/routers/kpis.py — /sites-map :
+
+AVANT : Lire sites_prives.json (404 sur Render, fichier gitignored)
+
+APRÈS : Lire table sites depuis Neon ✅
+
+4. scripts/init_db.sql :
+
+TimescaleDB désactivé (retiré create_hypertable)
+
+Remplacé par : CREATE INDEX idx_kpi_history_timestamp
+
+Raison : Neon ne supporte pas TimescaleDB
+
+Variables d'environnement Render
+Variable	Valeur
+DATABASE_URL	postgresql+psycopg://neondb_owner:***@ep-mute-wildflower-b41q395t-pooler.c-8.us-east-2.aws.neon.tech/neondb?sslmode=require
+SECRET_KEY	change-me-please-use-real-key-in-prod ⚠️ À changer
+ENVIRONMENT	production
+Déploiement Render
+Type : Web Service (Docker)
+
+Region : Ohio (US East)
+
+Runtime : Docker
+
+Instance : Free tier (0$/mois)
+
+Auto-Deploy : Yes (sur chaque push main)
+
+⚠️ Free tier : Le service "sleep" après 15 min d'inactivité → 1er appel = ~50 secondes de cold start.
+
+Étapes de déploiement réussies
+✅ Créé projet Neon rf-analytics
+
+✅ Modifié config.py (retiré hypertables)
+
+✅ Créé venv Python 3.12 (pas 3.14 → incompatible wheels)
+
+✅ pip install -r requirements.txt (avec psycopg[binary]>=3.2.0)
+
+✅ Créé 6 tables Neon (Base.metadata.create_all)
+
+✅ Créé tenant Digicel Haïti + user admin@test.com
+
+✅ Testé API locale (Uvicorn port 8001)
+
+✅ Créé Web Service Render (Docker + Free)
+
+✅ Configuré 3 variables env
+
+✅ Déployé → Live en 56 secondes
+
+✅ Fix frontend dans Docker (déplacé frontend/ dans backend/)
+
+✅ Fix /sites-map (lit sites table au lieu de JSON)
+
+✅ Injecté 6480 KPI + 547 sites GPS
+
+Pont RF Engineering 2.0 ↔ RF Analytics
+Prévu (à activer plus tard) :
+
+Côté RF Engineering 2.0 :
+
+Route /api/export/kpis protégée par X-API-Key
+
+Clé partagée : shared-secret-rf-analytics-2026 (à définir)
+
+Côté RF Analytics :
+
+Variables Render : RF_ENGINEERING_URL=https://rf-engineering-2-0.onrender.com
+
+Variable Render : RF_ENGINEERING_API_KEY=<clé>
+
+Worker ingestion_worker.py appelle RF Engineering toutes les 5 min
+
+⚠️ Le worker n'est PAS actif sur Render Free (pas de Background Worker gratuit).
+Alternative : GitHub Actions cron (2000 min/mois gratuits).
+
+Points de vigilance RF Analytics
+Render Free = sleep 15 min → cold start 50s
+
+Neon Free = scale to zero → cold start 10-30s
+
+sites_prives.json = 547 sites sensibles, gitignored
+
++psycopg obligatoire dans DATABASE_URL
+
+&channel_binding=require = bug psycopg v3 → retirer
+
+Frontend doit être dans backend/frontend/ pour Docker
+
+Ne JAMAIS utiliser Python 3.14 pour ce projet → 3.12 obligatoire
+
+Mot de passe Neon exposé pendant debug → à reset
+
+Roadmap RF Analytics restante
+Étape	Description
+Worker	Ingestion KPI automatique (GitHub Actions cron)
+Scheduler	Génération bulletins auto (lundi 8h)
+Stripe	Intégration paiement
+Domain custom	rf-analytics.ton-domaine.com (10$/an)
+Upgrade Starter	7$/mois → supprime sleep + workers
+Commandes utiles (local)
+Démarrer le serveur :
+
+powershell
+cd C:\Dev\rf-analytics\backend
+.\.venv\Scripts\Activate.ps1
+uvicorn app.main:app --reload --port 8001
+Arrêter : Ctrl + C
+
+Créer les tables (si supprimées) :
+
+powershell
+python -c "from app.database import engine; from app.models import Base; Base.metadata.create_all(bind=engine)"
+Re-seed KPI :
+
+powershell
+Re-seed sites :
+powershell
+python scripts\seed_sites.py
+Vérifier les tables :
+
+powershell
+python -c "from app.database import engine; from sqlalchemy import inspect; print(inspect(engine).get_table_names())"
+Compter les lignes :
+
+powershell
+python -c "from app.database import engine; from sqlalchemy import text; conn = engine.connect(); r = conn.execute(text('SELECT COUNT(*) FROM kpi_history')); print('KPI:', r.scalar()); r = conn.execute(text('SELECT COUNT(*) FROM sites')); print('Sites:', r.scalar()); conn.close()"
+Commandes utiles (Render)
+Voir les logs : Dashboard Render → rf-analytics → onglet Logs
+
+Redéployer manuellement : Dashboard Render → rf-analytics → Manual Deploy → Deploy latest commit
+
+Voir les variables : Dashboard Render → rf-analytics → Environment
+
+Diagnostics rapides
+Symptôme	Cause	Fix
+Page blanche sur /map.html	sites table vide	python scripts\seed_sites.py
+Dashboard tout à 0	kpi_history vide	python scripts\seed_kpi_history.py
+Login 500	DATABASE_URL invalide	Vérifier +psycopg et channel_binding
+Login 401	User inexistant	Créer avec Base.metadata.create_all + INSERT manuel
+Carte vide	/sites-map renvoie 0	Vérifier que sites table est peuplée
+Déploiement fail	psycopg-binary manquant	requirements.txt : psycopg[binary]>=3.2.0
+32. Récapitulatif des 3 SaaS en ligne (Oct 2026)
+Projet	URL	Stack	Statut
+RF Engineering 2.0	https://rf-engineering-2-0.onrender.com	FastAPI + Neon + Render	✅ Live
+RF Analytics	https://rf-analytics.onrender.com	FastAPI + Neon + Render	✅ Live
+RF Optimizer Tools	https://rf-optimizer-tools.onrender.com	HTML/CSS/JS + Render Static	✅ Live
+Portfolio	https://mon-site-rf.onrender.com	HTML/CSS/JS + Blog auto	✅ Live
+Total : 4 apps en ligne, 0$ de coût mensuel. 🎯
+
+Dernière mise à jour : 6 octobre 2026 (soir)
+Version RF Analytics : v1.0 (Live production)
+Statut : Production · Multi-tenant · Données réelles Haïti (54 sites)
