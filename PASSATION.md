@@ -2708,3 +2708,190 @@ python -c "import requests; r=requests.post('http://127.0.0.1:8001/api/auth/logi
 Dernière mise à jour : 7 octobre 2026 (soir)
 Version RF Analytics : v2.0 (Network Intelligence Platform)
 Statut : Production · 6 modules NSP · Deep-links RF Optimizer Tools
+
+---
+
+## 34. Mise à jour du 8 octobre 2026 — RF ANALYTICS 2.0 : 5 modules NSP ajoutés
+
+### Statut : 11 modules NSP opérationnels en production ✅
+
+**URL** : https://rf-analytics.onrender.com
+**Repo** : https://github.com/mmjt2000/rf-analytics
+**Local** : `C:\Dev\rf-analytics`
+
+### 5 nouveaux modules livrés en une journée
+
+| # | Module | URL | Description |
+|---|---|---|---|
+| **2** | 🧬 Technology Overview | `/technology.html` | Vue 2G / 3G / 4G / 5G côte à côte (KPIs simulés) |
+| **3** | 🌐 Network Topology | `/topology.html` | Drill-down Network → Cluster → Site → Cell |
+| **8** | 📅 Incident Timeline | `/incidents.html` | Chronologie des incidents (table alerts) |
+| **9** | 💥 Network Impact Analysis | `/impact.html` | Criticité par cellule (Haversine + simulateur) |
+| **10** | 🗺️ Geographic Network Intelligence | `/geo.html` | Carte Leaflet interactive 54 sites |
+
+### Architecture API (5 nouveaux routers)
+
+| Router | Endpoints |
+|---|---|
+| `app/routers/technology.py` | `GET /api/technology/overview` |
+| `app/routers/topology.py` | `GET /api/topology/tree`, `GET /api/topology/cluster/{name}` |
+| `app/routers/incidents.py` | `GET /api/incidents/timeline` |
+| `app/routers/impact.py` | `GET /api/impact/summary`, `GET /api/impact/simulate/{cell}` |
+| `app/routers/geo.py` | `GET /api/geo/sites` |
+
+### Mega-menu unifié (13 pages)
+
+**Composant réutilisable** :
+- `backend/frontend/js/menu.js` — injecte le header automatiquement
+- `backend/frontend/css/menu.css` — styles du mega-menu
+
+**5 catégories** :
+- 🏠 **Accueil** : Dashboard, Executive, Ranking
+- 🩺 **Diagnostic** : Anomalies, Root Cause, Topology, What Changed, Incidents, Impact
+- 📊 **Analyses** : Technology, Correlation, Rapports, Carte réseau
+- ⚙️ **Config** : Abonnement, Paramètres
+
+**Utilisation dans chaque page** :
+```html
+<link rel="stylesheet" href="/static/css/menu.css">
+...
+<body>
+<script src="/static/js/menu.js" data-active="dashboard"></script>
+Fix dashboard (index.html)
+Problèmes résolus :
+
+Emoji mal encodé (🔍 devenait âœ" en UTF-8) → cassait la chaîne JS '🔍 Scanner maintenant' → Unexpected end of input. Fix : retirer les emojis des chaînes JS.
+
+planBadge supprimé avec l'ancien header → Cannot set properties of null. Fix : protéger avec if (badge).
+
+loadCharts() recevait un objet {points: [...]} au lieu d'un array. Fix : utiliser data.points.
+
+Drop Call Rate affichait 90.31% au lieu de 0.90%. Fix : retirer le * 100 (déjà en %).
+
+Canvas is already in use → ajout de Chart.getChart(el).destroy() avant de recréer.
+
+Base de données (rappel)
+Table	Lignes
+tenants	1 (Digicel Haïti)
+users	1 (admin@test.com)
+sites	547 (tous géolocalisés)
+kpi_history	6480 (30j × 54 cellules)
+alerts	108 (54 critical + 54 medium)
+bulletins	0
+Comptes de test
+Email	Mot de passe	Tenant	Plan
+admin@test.com	Test1234!	Digicel Haïti	trial
+Endpoints disponibles (total)
+/api/auth/* — signup, login, me
+
+/api/kpis/* — summary, trends, sites-map, top-sites, cell/{id}
+
+/api/bulletins/* — generate, list, download
+
+/api/alerts/* — scan, list, acknowledge, resolve
+
+/api/billing/* — plans, checkout, webhook
+
+/api/settings/* — get, update
+
+/api/executive/* — dashboard, worst-cells, trend
+
+/api/anomalies/* — scan, detail/{cell}
+
+/api/rootcause/* — analyze/{cell}, top-causes
+
+/api/correlation/* — matrix, chain/{cell}
+
+/api/whatchanged/* — compare
+
+/api/ranking/* — worst, best
+
+/api/technology/overview
+
+/api/topology/tree, /api/topology/cluster/{name}
+
+/api/incidents/timeline
+
+/api/impact/summary, /api/impact/simulate/{cell}
+
+/api/geo/sites
+
+Bug à corriger plus tard
+Format d'heure des incidents : "20 h 51 min 22 s" au lieu de "15:31:22" → toLocaleTimeString sur un timestamp timezone-aware mal parsé. Non bloquant.
+
+Commandes de démarrage
+Local (2 terminaux) :
+
+powershell
+# Terminal 1 - serveur
+cd C:\Dev\rf-analytics\backend
+.\.venv\Scripts\Activate.ps1
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 - tests
+cd C:\Dev\rf-analytics\backend
+.\.venv\Scripts\Activate.ps1
+Login test :
+
+powershell
+$body = '{"email":"admin@test.com","password":"Test1234!"}'
+$login = Invoke-RestMethod -Uri "http://localhost:8000/api/auth/login" -Method Post -ContentType "application/json" -Body $body
+$headers = @{ Authorization = "Bearer $($login.access_token)" }
+Déploiement Render :
+
+powershell
+git add .
+git commit -m "Feature: ..."
+git push
+# Puis Render → Manual Deploy
+Roadmap restante (4 modules optionnels)
+#	Module	Effort
+12	🔮 Predictive Network Intelligence	🔴
+13	📈 Optimization Impact Tracking	🟡
+14	🔗 RF Optimizer Tools Integration	🟢
+15	🤖 RF Engineer AI Copilot	🔴
+Points de vigilance
+NE JAMAIS mettre d'emojis dans les chaînes JS (entre quotes) — l'encodage UTF-8 casse le JS
+
+PowerShell / Notepad : toujours vérifier le chemin avant d'ouvrir un fichier (..\ pour remonter)
+
+Uvicorn --reload ne recharge pas toujours — Ctrl+C + relance si comportement bizarre
+
+Render Free = cold start 50s après 15 min d'inactivité
+
+Neon Free = cold start 10-30s
+
+Toujours tester en local AVANT de pusher — les bugs emojis ne se voient qu'au runtime
+
+app.include_router(X.router) doit toujours être accompagné de X, dans le bloc from app.routers import (...)
+
+Commits clés de la session
+Commit	Description
+48804cd	Module 10 - Geographic Network Intelligence
+d409268	Fix dashboard KPI + 3 graphiques
+b923112	Modules 2, 3, 8, 9 + mega-menu unifie
+68c713a	Fix index.html crash si planBadge absent
+Dernière mise à jour : 8 octobre 2026 (soir)
+Version RF Analytics : v2.5 (Network Intelligence Platform — 11 modules)
+Statut : Production · 11 modules NSP · Deep-links RF Optimizer Tools
+
+text
+
+---
+
+## 📋 ÉTAPES POUR FINALISER
+
+### 1. Ouvre `PASSATION.md`
+
+Ouvre le fichier dans **VS Code** (pas Notepad, pour l'encodage) :
+
+```powershell
+cd C:\Dev\rf-engineering-2-0
+code PASSATION.md
+2. Colle le contenu ci-dessus à la fin du fichier
+3. Commit + Push
+powershell
+cd C:\Dev\rf-engineering-2-0
+git add PASSATION.md
+git commit -m "PASSATION: section 34 - RF Analytics v2.5 (11 modules NSP)"
+git push
