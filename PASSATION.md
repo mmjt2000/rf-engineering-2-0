@@ -2895,3 +2895,153 @@ cd C:\Dev\rf-engineering-2-0
 git add PASSATION.md
 git commit -m "PASSATION: section 34 - RF Analytics v2.5 (11 modules NSP)"
 git push
+
+
+---
+
+## 35. Mise à jour du 8 octobre 2026 (nuit) — RF ANALYTICS 2.0 : 3 modules finaux
+
+### Statut : 14 modules NSP opérationnels en production ✅
+
+**URL** : https://rf-analytics.onrender.com
+**Repo** : https://github.com/mmjt2000/rf-analytics
+**Local** : `C:\Dev\rf-analytics`
+
+### 3 nouveaux modules livrés ce soir
+
+| # | Module | URL | Description |
+|---|---|---|---|
+| **13** | 📈 Optimization Impact Tracking | `/optimizations.html` | Suivi avant/après des optimisations RF |
+| **14** | 🔗 RF Optimizer Integration | *(intégré dans 3 pages)* | Deep-links contextuels vers RF Optimizer Tools |
+
+### Nouveau modèle DB : `optimizations`
+
+**Fichier** : `app/models/optimization.py`
+
+**Champs clés** :
+- `id`, `tenant_id`, `cell_id`, `cluster`
+- `action_type` (tilt, azimuth, power, mobility, anr, activate, deactivate)
+- `parameter`, `value_before`, `value_after`
+- `health_before/after`, `dl_before/after`, `dcr_before/after`, `prb_before/after`
+- `status` (planned, applied, validated, rejected)
+- `notes`, `applied_at`, `validated_at`
+
+**Seed** : `backend/seed_optimizations.py` (15 optimisations de démo)
+
+### Nouveau router : `optimizations.py`
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/optimizations/list?days=90&status=all` | Liste + stats + répartition par action |
+| `GET /api/optimizations/clusters` | Liste des clusters avec optimisations |
+| `GET /api/optimizations/summary?days=90` | Agrégat par cluster |
+
+### Composant `rf-optimizer-links.js`
+
+**Fichier** : `backend/frontend/js/rf-optimizer-links.js`
+
+**Fonctionnalités** :
+- Mapping KPI → outils RF Optimizer recommandés
+- `RFOptimizer.renderSuggestions(containerId, { kpi, cell, cluster })`
+- `RFOptimizer.quickLink(toolKey, params)` pour liens inline
+- 14 outils mappés (interference, coverage, capacity, mobility, quality, hardware, downtilt, downtilt_auto, kpi_load, offload, son_mlb, son_mro, son_cco, son_energy)
+
+**Intégré dans 3 pages** :
+- `rootcause.html` → contexte `health_score`
+- `anomalies.html` → contexte `dl_throughput`
+- `impact.html` → contexte `prb_util`
+
+### Hash-router ajouté à RF Optimizer Tools
+
+**Repo** : https://github.com/mmjt2000/rf-optimizer-tools
+**Fichier modifié** : `js/app.js`
+**Commit** : `c09c95`
+
+**Fonctionnalité** :
+- Deep-links depuis RF Analytics via URL `#module?params`
+- Exemples : `/#troubleshooting`, `/#mobility`, `/#capacity`, `/#son`, `/#troubleshooting?cell=HAIDC024`
+- Le hash-router parse `?param=value` après le nom du module
+
+### Script cache-busting : `bump_assets_version.py`
+
+**Fichier** : `backend/bump_assets_version.py`
+
+**Fonctionnalité** :
+- Ajoute `?v=YYYYMMDDHHMM` à tous les `<script src="/static/...">` et `<link rel="stylesheet" href="/static/...">`
+- Parcourt tous les `*.html` de `frontend/`
+- Ignore `_preview.html` et `_rfo_test.html`
+
+**Usage** :
+```powershell
+cd C:\Dev\rf-analytics\backend
+python bump_assets_version.py
+
+⚠️ Note : le cache du navigateur peut encore résister localement → Ctrl+Shift+R reste nécessaire dans certains cas. Les visiteurs verront toujours la dernière version à leur 1ère visite.
+
+Commits clés de la session (soir)
+Repo	Commit	Description
+rf-analytics	2c8a151	Module 14 - integration RF Optimizer dans Root Cause, Anomalies, Impact
+rf-analytics	51b5c00	Add: page test RF Optimizer deep-links
+rf-analytics	7f7f363	Module 14 - deep-links via hash-router
+rf-analytics	404e4f6	Module 13 - Optimization Impact Tracking
+rf-optimizer-tools	c09c95	Fix: applyHash ignore les query params apres hash
+rf-optimizer-tools	d7f5ba	Feature: hash-router pour deep-links depuis RF Analytics
+Répartition des 14 modules NSP
+Catégorie	Modules
+🏠 Accueil	Dashboard, Executive, Ranking
+🩺 Diagnostic	Anomalies, Root Cause, Topology, What Changed, Incidents, Impact
+📊 Analyses	Technology, Correlation, Optimisations, Rapports, Carte réseau (Geo)
+⚙️ Config	Abonnement, Paramètres
+Roadmap restante (2 modules)
+#	Module	Effort
+12	🔮 Predictive Network Intelligence	🔴
+15	🤖 RF Engineer AI Copilot	🔴
+Points de vigilance (nouveaux)
+Cache navigateur : Ctrl+Shift+R après chaque déploiement local
+
+Hash-router : le ? dans un hash doit être coupé avant le VALID.includes() → raw.split('?')[0]
+
+Seed optimizations.py : à relancer si la table est vidée (python seed_optimizations.py)
+
+RF Optimizer Tools : redéployer aussi ce repo quand on modifie les deep-links
+
+Emojis dans JS : à éviter (encodage UTF-8 → cassures)
+
+Commandes utiles
+Démarrer RF Analytics :
+
+powershell
+cd C:\Dev\rf-analytics\backend
+.\.venv\Scripts\Activate.ps1
+uvicorn app.main:app --reload --port 8000
+Démarrer RF Optimizer (local) :
+
+powershell
+cd C:\Dev\rf-optimizer-tools
+npx serve -l 3000
+Bump cache-busting avant commit :
+
+powershell
+cd C:\Dev\rf-analytics\backend
+python bump_assets_version.py
+Login test :
+
+powershell
+$body = '{"email":"admin@test.com","password":"Test1234!"}'
+$login = Invoke-RestMethod -Uri "http://localhost:8000/api/auth/login" -Method Post -ContentType "application/json" -Body $body
+$headers = @{ Authorization = "Bearer $($login.access_token)" }
+Dernière mise à jour : 8 octobre 2026 (nuit)
+Version RF Analytics : v2.6 (Network Intelligence Platform — 14 modules)
+Statut : Production · 14 modules NSP · Deep-links RF Optimizer Tools
+
+text
+
+**Ctrl+S** → ferme Notepad.
+
+### 📋 ÉTAPE 3 — Commit + Push
+
+```powershell
+cd C:\Dev\rf-engineering-2-0
+git add PASSATION.md
+git commit -m "PASSATION: section 35 - RF Analytics v2.6 (14 modules NSP + RF Optimizer integration)"
+git push
