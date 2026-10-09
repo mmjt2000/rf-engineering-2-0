@@ -3045,3 +3045,115 @@ cd C:\Dev\rf-engineering-2-0
 git add PASSATION.md
 git commit -m "PASSATION: section 35 - RF Analytics v2.6 (14 modules NSP + RF Optimizer integration)"
 git push
+
+
+---
+
+## 36. Mise à jour du 9 octobre 2026 — Données réalistes RF Analytics + Retour d'amie portfolio
+
+### Contexte
+
+Deux chantiers en parallèle : améliorer le portfolio (feedback d'une amie) et corriger le manque de réalisme des données de démo dans RF Analytics.
+
+### A. Feedback d'une amie sur le portfolio
+
+**Retour reçu** : présentation moderne mais difficile de comprendre le métier pour un non-expert.
+
+**3 ajouts appliqués et en ligne** (mon-site-rf.onrender.com) :
+
+| Ajout | Description |
+|---|---|
+| **Hero "traduction"** | Encadré bleu : "En clair : je construis les outils qui aident les opérateurs mobiles à détecter, diagnostiquer et réparer les problèmes de réseau..." |
+| **Section "Ce que je fais"** | 3 cartes avec exemples concrets (appels qui coupent / manager sans visibilité / ingénieurs terrain) |
+| **Section "Ce que je recherche"** | 3 cartes (postes, localisations, types de contrat) + CTA contact |
+
+**Commits portfolio** :
+- `69ba28c` — Hero traduction + postes recherchés
+- `b4c5031` — Section "Ce que je recherche"
+- Section "Ce que je fais" (commit antérieur)
+
+**Fichier modifié** : `index.html` du repo portfolio (branche main)
+
+### B. Refonte des données RF Analytics (seed réaliste)
+
+**Problème identifié** : les données de démo étaient trop lisses → aucune anomalie détectable, prédictions plates, copilot sans matière.
+
+**Solution** : `backend/scripts/seed_realistic.py` (nouveau générateur)
+
+**Caractéristiques du générateur** :
+- Cycle jour/nuit : PRB bas la nuit, pic 19h-22h
+- Pattern hebdo : lundi chargé, dimanche calme
+- 4 scénarios aléatoires : congestion (5 cellules PRB>85%), couverture (5 cellules SINR<5), MLB (3 cellules), panne (2 cellules, extinction 2-4h)
+- Tendances long terme : 40% cellules dégradation, 30% amélioration, 30% stable
+- Corrélations réalistes : PRB↑ → DCR↑, SINR↓ → DL↓
+- 54 sites × 31 jours × 8 points/jour = **12 960 lignes** par run
+
+**Fichier créé** : `backend/scripts/seed_realistic.py`
+**Ancien fichier** : `backend/scripts/seed_kpi_history_OLD.py` (backup)
+
+### C. Corrections backend
+
+**`app/routers/copilot.py`** :
+- `_tool_get_anomalies` : passage de "health < 75" à calcul **z-score** (> 2, avec stddev sur baseline 30j)
+- Retourne top 15 avec sévérité (critical / high / warning)
+
+**`app/routers/predictive.py`** :
+- Ajout `smooth_moving_average(values, window=3)` pour lisser les oscillations jour/nuit avant régression
+- `trend_label` : seuils passés de ±0.05 à ±0.01
+- Slope appliqué sur les séries lissées (health, dl, dcr)
+
+**`app/routers/anomalies.py`** :
+- ⚠️ **Modification non finalisée** : seuil `min_anomaly_score` par défaut à ajuster (30 → 20)
+
+### D. Commits RF Analytics
+
+| Commit | Description |
+|---|---|
+| `3af4e41` | Feature: seed realiste + copilot anomalies z-score + predictive smoothing |
+
+**Fichiers commités** :
+- `backend/app/routers/copilot.py`
+- `backend/app/routers/predictive.py`
+- `backend/scripts/seed_realistic.py`
+
+### E. État au moment de l'arrêt
+
+**Portfolio** : ✅ En ligne, fonctionnel, 3 sections ajoutées.
+
+**RF Analytics** :
+- ✅ Le seed réaliste tourne (12 960 lignes)
+- ✅ Dashboard affiche des graphiques avec variations
+- ✅ Executive affiche Health 55.1 (au lieu de plat)
+- ✅ Copilot donne des réponses détaillées avec vraies cellules
+- ✅ Predictive détecte 7 cellules en dégradation / 26 en amélioration
+- ⚠️ **Anomalies** : le scanner retourne 0 (dû au chevauchement entre fenêtre 24h et baseline 30j — les deux contiennent les mêmes données)
+- ❌ Version trilingue du portfolio : dossier `es/` créé mais traduit partiellement — sections Skills/Experience/Volunteer/News vides — **non poussé**
+
+### F. Fichiers temporaires à nettoyer (non commités)
+
+À la racine de `backend/` :
+- `check_dates.py`
+- `check_scenarios.py`
+- `check_recent.py` (si existant)
+
+Commande :
+```powershell
+Remove-Item check_dates.py, check_scenarios.py, check_recent.py -ErrorAction SilentlyContinue
+
+G. Pour reprendre proprement
+Prochaine priorité : corriger le scanner d'anomalies pour qu'il compare des fenêtres distinctes.
+
+Solution recommandée : dans app/routers/anomalies.py, fenêtre actuelle = 24h, baseline = fenêtre J-30 à J-1 (excluant les 24 dernières heures). Actuellement les deux fenêtres se chevauchent.
+
+Deuxième priorité : version trilingue du portfolio
+
+Reprendre depuis Mon_site_BACKUP_i18n_20261009_133533
+
+Méthode différente à envisager (éviter la refonte multi-dossiers qui s'est avérée pénible)
+
+Troisième priorité : Lengua Bridges AI Tutor (Ingrid + filles) — non commencé
+
+Dernière mise à jour : 9 octobre 2026
+Statut : Portfolio stable · RF Analytics données réalistes en place, module Anomalies à ajuster
+
+text
