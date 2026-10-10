@@ -3156,4 +3156,104 @@ Troisième priorité : Lengua Bridges AI Tutor (Ingrid + filles) — non commenc
 Dernière mise à jour : 9 octobre 2026
 Statut : Portfolio stable · RF Analytics données réalistes en place, module Anomalies à ajuster
 
-text
+
+---
+
+## 38. Nouveau projet identifié — RF PLANNER (Spécification terminée)
+
+### Statut : 📋 Documenté pour plus tard (pas encore commencé)
+
+### Contexte
+
+Lors de la session du 10 octobre 2026, identification d'un **nouveau projet complémentaire** à l'écosystème RF existant : **RF Planner**.
+
+**Positionnement** : Outil de **design et planification RF** pour le RF Planner / Architecte réseau (phase conception, avant déploiement).
+
+**Différenciateur** : complète le cycle RF complet. Actuellement les 3 apps existantes couvrent Intégration + Analyse + Terrain, mais **PAS la conception**.
+
+### Cycle RF complet couvert par l'écosystème
+
+| Phase | Outil | Utilisateur | Statut |
+|---|---|---|---|
+| **1. Conception** | **RF Planner** | RF Planner / Architecte | 📋 Spec |
+| 2. Intégration | RF Engineering 2.0 | Ingénieur NOC | ✅ Live |
+| 3. Analyse | RF Analytics | Manager RF | ✅ Live |
+| 4. Terrain | RF Optimizer Tools | Technicien field | ✅ Live |
+
+### Repo créé
+
+**https://github.com/mmjt2000/rf-planner-app** (privé)
+
+**Structure** :
+- `README.md` — Spécification fonctionnelle publique
+- `SPEC.md` — Spécification technique détaillée (enrichissements Qwen)
+
+**Statut actuel** : pas de code, juste la spec.
+
+### 8 modules prévus
+
+| # | Module | Description |
+|---|---|---|
+| 1 | Estimation couverture & Link Budget | Tracer zone → calculer sites requis (capacity + coverage) |
+| 2 | Link Budget Calculator | Distance par techno (Okumura-Hata, COST-231, FSPL, ITU-R P.1546) |
+| 3 | Placement des sites | Grille hexagonale + ajustement + détection trous/overlap (GeoPandas + Shapely) |
+| 4 | Planification voisinage | Auto-detection + export scripts Huawei/Ericsson/Nokia/Samsung |
+| 5 | PCI / PRACH / TAC Planning | Attribution sans conflit (mod-3, mod-30) + export vendor |
+| 6 | Nominal Planning | Paramètres initiaux par site (azimuth, tilt, puissance, mobilité) |
+| 7 | Simulateur de scénarios | Comparer 15 vs 25 sites → coût vs couverture → PDF direction |
+| 8 | Import terrain réel | SRTM (Copernicus DEM 30m) + Clutter (OSM/Corine) + sites existants |
+
+### Stack technique prévue
+
+- **Backend** : FastAPI + PostgreSQL + GeoPandas + Shapely
+- **Frontend** : HTML/CSS/JS + Leaflet + Chart.js + Mapbox GL JS
+- **Auth** : JWT (réutiliser de RF Analytics)
+- **Multi-tenant** : 1 tenant = 1 opérateur = 1 projet
+- **Déploiement** : Render + Neon
+- **IA** : RF Planner Copilot (Groq — réutiliser de RF Analytics)
+
+### Cas d'usage cible
+
+Opérateur (Digicel, Orange, MTN) ou intégrateur (Huawei, Ericsson, Nokia) qui conçoit un réseau **avant** de le déployer.
+
+**Gain** : design réseau de **2 semaines → 1 journée**.
+
+### Modèles de propagation identifiés
+
+| Contexte | Modèle |
+|---|---|
+| Urbain dense | ITU-R P.1411 ou COST-231 Walfisch-Ikegami |
+| Suburbain / Rural | ITU-R P.1546 ou Okumura-Hata |
+| 5G mmWave | ITU-R P.2108 (bâtiments + pluie) |
+
+### Sources de données gratuites
+
+- **Relief** : Copernicus DEM (30m) ou NASA SRTM
+- **Clutter** : OpenStreetMap (Overpass API) ou Corine Land Cover
+
+### Valeur stratégique
+
+Qwen a résumé : **"One-Man RF Tech Company"**. Aucun ingénieur RF indépendant n'a cette couverture complète. Argument de vente très puissant.
+
+### Actions effectuées le 10 oct 2026
+
+- ✅ Repo GitHub `rf-planner-app` créé
+- ✅ `README.md` — spec publique rédigée
+- ✅ `SPEC.md` — spec technique détaillée
+- ✅ Push sur `main`
+
+### Prochaines actions (quand on reprendra)
+
+1. Choisir quel module attaquer en premier (recommandé : **Module 1 + 2** en même temps car ils sont liés)
+2. Créer la structure FastAPI (`app/routers/planner.py`, `app/models/`)
+3. Créer la première page HTML (carte Leaflet avec tracé de zone)
+4. Implémenter les modèles de propagation (bibliothèque `pyproj` + formules ITU-R)
+
+### Note importante
+
+**Ne pas répéter** ce qui existe déjà dans :
+- ❌ RF Engineering 2.0 (monitoring live)
+- ❌ RF Analytics (analyse KPI historique)
+- ❌ RF Optimizer Tools (troubleshooting terrain)
+
+**Focus exclusif** : conception / design / dimensionnement **avant déploiement**.
