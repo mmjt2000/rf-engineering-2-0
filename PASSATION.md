@@ -3257,3 +3257,139 @@ Qwen a résumé : **"One-Man RF Tech Company"**. Aucun ingénieur RF indépendan
 - ❌ RF Optimizer Tools (troubleshooting terrain)
 
 **Focus exclusif** : conception / design / dimensionnement **avant déploiement**.
+
+
+---
+
+## 39. Mise à jour du 11 octobre 2026 — RF Analytics : KPI Details LTE/5G
+
+### Statut : Module KPI détaillés opérationnel + Root Cause enrichi + Export CSV ✅
+
+### A. Nouveau modèle DB : `kpi_history_extended`
+
+**Fichier** : `backend/app/models/kpi_history_extended.py`
+
+**48 colonnes** avec KPI détaillés LTE/5G :
+
+**KPI de base (compat)** : rsrp, sinr, dl_throughput, ul_throughput, rrc_setup_sr, drop_call_rate, prb_util, health_score
+
+**LTE détaillés** : dl_prb_util, ul_prb_util, gbr_prb_util, non_gbr_prb_util, pdcch_cce_util
+
+**Utilisateurs** : rrc_users, active_users, max_rrc_users
+
+**Qualité canal** : cqi_avg, mcs_dl_avg, mcs_ul_avg, bler_dl, bler_ul, harq_retx_rate
+
+**5G spécifique** : ss_rsrp, ss_sinr, pdu_sessions, qos_flows, mimo_layers_avg, scs_khz
+
+**Charges système** : hw_load, tnl_load, cu_load, du_load, bbu_cpu, bbu_mem
+
+**Mobilité** : ho_success_rate, ho_attempts, ho_failures, ho_inter_freq_sr, ho_inter_rat_sr
+
+**Trafic** : dl_traffic_gb, ul_traffic_gb, voip_calls, volte_calls
+
+**Techno** : colonne `techno` (LTE / 5G / 3G / 2G)
+
+### B. Seed : `backend/scripts/seed_kpi_extended.py`
+
+- **3348 lignes** générées (54 sites × 8 points/jour × 7 jours + aujourd'hui)
+- **Distribution** : 49 LTE + 5 5G
+- **5 scénarios** : congestion (8), coverage (8), interference (6), mobility (4), outage (4)
+- **Corrélations métier réalistes** :
+  - PRB DL ↑ → BLER ↑ → MCS ↓
+  - SINR ↓ → CQI ↓ → DL throughput ↓
+  - RRC users ↑ → PRB ↑ → TNL load ↑
+
+### C. Router API : `backend/app/routers/kpi_details.py`
+
+**4 endpoints** :
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/kpis/details/{cell_id}` | Tous les KPI d'une cellule + historique |
+| `GET /api/kpis/details/summary/global` | Résumé par techno (LTE / 5G) |
+| `GET /api/kpis/details/top-critical/list` | Top cellules critiques + diagnostic auto |
+| `GET /api/kpis/details/export/csv` | Export CSV réseau complet |
+| `GET /api/kpis/details/export/{cell_id}/csv` | Export CSV cellule unique |
+
+**Format CSV** : séparateur `;`, décimales avec virgule (compatible Excel FR), BOM UTF-8
+
+### D. Page HTML : `frontend/kpi-details.html`
+
+**3 sections** :
+1. **Vue réseau** : 2 cartes 5G/LTE avec KPI principaux
+2. **Top cellules critiques** : tableau cliquable avec diagnostic automatique
+3. **Détail cellule** : panneau avec tous les KPI + graphique Chart.js 4 courbes (Health, DL PRB, BLER, CQI)
+
+**2 boutons d'export CSV** :
+- 📥 **Exporter réseau** (toutes les cellules)
+- 📄 **Exporter cellule** (actif après sélection dans le tableau)
+
+### E. Enrichissement Root Cause : `backend/app/routers/rootcause.py`
+
+**2 nouvelles fonctions** :
+- `fetch_extended_kpis(db, tenant_id, cell_id, period_start)` — récupère les KPI détaillés moyens
+- `enrich_causes_with_extended(causes, evidence_map, ext)` — enrichit les scores d'hypothèse
+
+**Enrichissements appliqués** :
+- **Interference** : ajoute BLER DL élevé + CQI bas + MCS bas
+- **Capacity** : ajoute HW load + TNL load + analyse croisée PRB/users
+- **Mobility** : ajoute HO success rate bas
+
+**Résultat** : le endpoint `/api/rootcause/top-causes` retourne maintenant `evidence` + `extended_kpis` pour chaque cellule.
+
+### F. Enrichissement Anomalies : `backend/app/routers/anomalies.py`
+
+**Helper** : `_fetch_extended_diagnostic()` — utilise les KPI détaillés pour un diagnostic croisé
+
+**Diagnostic combiné** :
+- Si KPI détaillés anormaux → diagnostic détaillé (CQI/PRB/BLER/HW/TNL)
+- Si KPI détaillés normaux → cherche le KPI basique coupable (Health, DCR, RRC, SINR)
+
+**Résultat** : chaque anomalie a maintenant un champ `diagnostic` avec un message précis.
+
+### G. Corrections importantes
+
+1. **Indentation Python** : le patch Root Cause a été mal collé, corrigé manuellement
+2. **CSV décimales** : WPS Office convertissait `8.68` en `28-nov` → fix avec virgule `,`
+3. **Graphique Chart.js** : `pointRadius: 0` → courbes invisibles → fix avec `pointRadius: 3`
+4. **Seuils diagnostic** : CQI < 7 → 7.5, PRB > 80 → 75 (plus sensible)
+5. **BOM UTF-8** : ajouté au CSV pour Excel
+
+### H. Commits clés (repo rf-analytics)
+
+| Commit | Description |
+|---|---|
+| `eeca5d7` | KPI Details LTE/5G (table + router + UI + seed + menu) |
+| `db5c301` | Root Cause enrichi avec KPI détaillés + seuils ajustés + graphique fix |
+| `1353abd` | Export CSV KPI Details (format FR + BOM UTF-8) |
+
+### I. Backlog restant
+
+- Export CSV : intégrer un bouton "Exporter" sur la page Root Cause
+- Anomalies : ajouter un onglet "KPI détaillés" dans la page HTML
+- Trilingue portfolio (en/ + es/) : WIP non terminé
+- Activer "Práctica IA" pour Ingrid, Maryse et Laeticia (Lengua Bridges)
+- RF Planner Module 1 : Estimation couverture (à démarrer)
+
+### J. Commandes utiles
+
+**Seed KPI étendus** :
+```powershell
+cd C:\Dev\rf-analytics\backend
+.\.venv\Scripts\Activate.ps1
+python scripts\seed_kpi_extended.py
+
+Test endpoints :
+$body = '{"email":"admin@test.com","password":"Test1234!"}'
+$login = Invoke-RestMethod -Uri "http://localhost:8000/api/auth/login" -Method Post -ContentType "application/json" -Body $body
+$headers = @{ Authorization = "Bearer $($login.access_token)" }
+
+# Résumé réseau
+Invoke-RestMethod -Uri "http://localhost:8000/api/kpis/details/summary/global?hours=24" -Headers $headers
+
+# Détail cellule
+Invoke-RestMethod -Uri "http://localhost:8000/api/kpis/details/HAIDC015?hours=24" -Headers $headers
+
+Dernière mise à jour : 11 octobre 2026 (soir)
+Version RF Analytics : v2.7 (Network Intelligence Platform — KPI Details LTE/5G)
+Statut : Production · 17 modules NSP · KPI détaillés + Root Cause enrichi + Export CSV
