@@ -3393,3 +3393,98 @@ Invoke-RestMethod -Uri "http://localhost:8000/api/kpis/details/HAIDC015?hours=24
 Dernière mise à jour : 11 octobre 2026 (soir)
 Version RF Analytics : v2.7 (Network Intelligence Platform — KPI Details LTE/5G)
 Statut : Production · 17 modules NSP · KPI détaillés + Root Cause enrichi + Export CSV
+---
+
+## 40. Mise à jour du 11 octobre 2026 — LINGUA BRIDGE : Restructuration complète
+
+### Statut : Projet propre + Streamlit fonctionnel ✅
+
+### A. Contexte
+
+Le projet Lingua Bridge Academy (English course app for Ingrid) était stocké dans OneDrive
+(`C:\Users\Utilisateur\OneDrive\Escritorio\Nouveau Coulou\Petits jobs\English\Python`)
+en 3 versions parallèles, ce qui créait :
+- Des conflits Git (dossier non tracké correctement)
+- De la confusion (3 dossiers `app.py` différents)
+- Une synchronisation OneDrive lourde (584 Mo)
+- Des PDF/PPT téléchargés inutilement (déjà sur GitHub)
+
+### B. Actions réalisées
+
+| Action | Détail |
+|---|---|
+| **Backup** | `C:\Backup_20261011\lingua-bridge-code.zip` (code only) |
+| **Déplacement** | `OneDrive\...\Python` → `C:\Dev\lingua-bridge-app\` |
+| **Exclusion** | PDF/PPT/XLSX (57 fichiers, ~500 Mo) — restent sur GitHub |
+| **Suppression** | 2 dossiers parasites (`Lingua_Bridge_app/`, `Lingua_Bridge_Deploy/`) |
+| **Git propre** | `git update-index --skip-worktree` sur les fichiers exclus |
+| **Nouveau venv** | Python 3.12.9 dans `C:\Dev\lingua-bridge-app\.venv\` |
+| **Installation** | `pip install -r requirements.txt` — 0 erreur |
+| **Test** | `streamlit run app.py` → http://localhost:8501 ✅ |
+
+### C. État final
+C:\Dev\lingua-bridge-app\ ← UN SEUL DOSSIER PROPRE (16.84 Mo)
+├── .git/ ✅ historique préservé
+├── .streamlit/ ✅ config
+├── .env ✅ clés Groq (69 o)
+├── .gitignore ✅
+├── .venv/ ✅ Python 3.12.9 + streamlit 1.65.0
+├── app.py ✅ (35 Ko)
+├── voice_module.py ✅ (14 Ko) — module IA vocal
+├── database.py ✅
+├── init_data.py ✅
+├── lessons.json ✅ (385 Ko — 19 leçons)
+├── podcasts_data.py ✅
+├── pronunciation_data.py ✅
+├── sheets_db.py ✅ Google Sheets
+├── songs_data.py ✅
+├── requirements.txt ✅ (11 packages)
+├── README.md ✅
+├── lingua_bridge.db ✅ (0 o, se régénère au démarrage)
+└── fr/ ✅ corrigés français (sans PDF)
+
+text
+
+**Repo GitHub** : https://github.com/mmjt2000/lingua-bridge-app
+**Branche active** : `main` (up to date avec origin/main)
+**Dernier commit** : `e62427d` — Refactor: voice_module.py complet propre
+
+### D. Commandes utiles
+
+**Démarrer l'app** :
+```powershell
+cd C:\Dev\lingua-bridge-app
+.\.venv\Scripts\Activate.ps1
+streamlit run app.py
+Accès : http://localhost:8501
+
+Arrêter : Ctrl+C dans le terminal
+
+E. Points de vigilance
+⚠️ NE JAMAIS travailler depuis OneDrive — toujours C:\Dev\
+
+⚠️ Les PDF/PPT sont sur GitHub mais PAS en local — git update-index --skip-worktree configuré
+
+⚠️ .env contient la clé Groq — ne JAMAIS committer (déjà dans .gitignore)
+
+⚠️ Le .venv/ ne peut PAS être copié — toujours le recréer après déplacement
+
+⚠️ Ne pas fermer le terminal PowerShell pendant que Streamlit tourne
+
+F. Prochaine session — Options
+#	Tâche	Effort
+A	Activer "Práctica IA" pour Ingrid + Maryse + Laeticia (multi-user)	Moyen
+B	Déployer sur Streamlit Cloud (URL publique gratuite)	Rapide
+C	Documenter Lingua Bridge dans un PASSATION dédié	Moyen
+D	Nettoyage OneDrive (supprimer l'original maintenant vide)	Rapide
+E	Autre chose	-
+41. Récapitulatif écosystème complet (Oct 2026)
+5 projets actifs
+#	Projet	URL	Stack	Statut
+1	Portfolio	https://mon-site-rf.onrender.com	HTML/CSS/JS + Blog auto	✅ Live
+2	RF Engineering 2.0	https://rf-engineering-2-0.onrender.com	FastAPI + Neon + Render	✅ Live
+3	RF Analytics	https://rf-analytics.onrender.com	FastAPI + Neon + Render	✅ Live
+4	RF Optimizer Tools	https://rf-optimizer-tools.onrender.com	HTML/CSS/JS + Render Static	✅ Live
+5	Lingua Bridge Academy	http://localhost:8501 (local)	Streamlit + Groq + Google Sheets	✅ Local
+6	RF Planner	(spec only)	FastAPI + PostGIS + Leaflet	📋 Spec
+text
