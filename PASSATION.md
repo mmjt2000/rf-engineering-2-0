@@ -3566,3 +3566,140 @@ Projet **Lingua Bridge Academy** — app Streamlit d'apprentissage d'anglais/fra
 cd C:\Dev\lingua-bridge-app
 .\.venv\Scripts\Activate.ps1
 streamlit run app.py
+
+---
+
+## 43. Mise à jour du 11 octobre 2026 (nuit) — LINGUA BRIDGE : Práctica IA BILINGUE
+
+### Statut : Fonctionne en Anglais + Français ✅
+
+### A. Contexte
+
+Suite à la section 42, on a remarqué que Práctica IA était **uniquement en anglais**, même quand le cours "Frances" était sélectionné dans le menu Curso.
+
+**Problème** : Práctica IA utilisait toujours :
+- Voix anglaise (`en-US-AriaNeural`)
+- Whisper en anglais (`language="en"`)
+- Prompt anglais
+
+### B. Solution : `LANG_CONFIG` par langue
+
+**Fichier** : `C:\Dev\lingua-bridge-app\voice_module.py`
+
+**Ajout d'un dictionnaire `LANG_CONFIG`** :
+
+```python
+LANG_CONFIG = {
+    "en": {
+        "voice": "en-US-AriaNeural",
+        "stt_lang": "en",
+        "title": "🎤 Practice with AI",
+        "subtitle": "*Speak in English, the AI listens, corrects and answers with voice.*",
+        "prompt": "You are an English conversation tutor...",
+        "start_msg": "**🎤 Speak:**",
+        "recording_msg": "Record your answer",
+        "transcribing": "Transcribing...",
+        "thinking": "AI is thinking...",
+        "new_conv": "🔄 New conversation",
+        "free_conv_title": "### 💬 Free conversation",
+    },
+    "fr": {
+        "voice": "fr-FR-DeniseNeural",
+        "stt_lang": "fr",
+        "title": "🎤 Pratique avec IA",
+        "subtitle": "*Parle en français, l'IA t'écoute, corrige et répond avec sa voix.*",
+        "prompt": "Tu es un tuteur de conversation en français...",
+        "start_msg": "**🎤 Parle :**",
+        "recording_msg": "Enregistre ta réponse",
+        "transcribing": "Transcription en cours...",
+        "thinking": "L'IA réfléchit...",
+        "new_conv": "🔄 Nouvelle conversation",
+        "free_conv_title": "### 💬 Conversation libre",
+    },
+}
+C. Modifications
+Fonction	Avant	Après
+render_voice_module()	Titre hard-codé "Práctica con IA"	cfg["title"] selon lang
+render_free_conversation()	Espagnol	cfg[...] selon lang
+llm_conversation()	Prompt anglais hard-codé	cfg["prompt"].format(...)
+text_to_speech()	Voice en-US-AriaNeural hard	voice=cfg["voice"]
+Reset automatique : quand on switch EN ↔ FR, la conversation se vide (évite le mélange).
+
+D. Résultat
+Langue	Titre	Voix	Whisper
+Ingles (EN)	🎤 Practice with AI	en-US-AriaNeural	language="en"
+Frances (FR)	🎤 Pratique avec IA	fr-FR-DeniseNeural	language="fr"
+E. Bugs rencontrés et fixés
+Le voice_module.py sur GitHub n'était pas à jour — édition web non commitée qui bloquait
+
+Fix : git push propre depuis le local
+
+Le player audio affichait 0:00 au premier rendu
+
+Fix : Rechargement manuel (Ctrl+R) suffit → le son joue
+
+F. Commits
+Commit	Description
+b220bbf	Feature: Practica IA bilingue (FR + EN) - voix Denise FR + STT FR + prompt FR
+G. Points de vigilance
+Le LANG_CONFIG est la SOURCE DE VÉRITÉ — toute nouvelle langue doit être ajoutée là
+
+Voix françaises disponibles :
+
+fr-FR-DeniseNeural (femme)
+
+fr-FR-HenriNeural (homme)
+
+fr-FR-EloiseNeural (enfant)
+
+Si on ajoute une nouvelle langue : ajouter la clé "xx" dans LANG_CONFIG + le radio dans app.py
+
+Streamlit Cloud peut mettre 2-3 min à redéployer après un push
+
+H. Testé ✅
+✅ Ingrid + Maryse + Laeticia : Práctica IA visible et fonctionnel
+
+✅ Jean Thomas (prof) : idem
+
+✅ Mode FR : Whisper FR + voix Denise + prompt FR
+
+✅ Mode EN : Whisper EN + voix Aria + prompt EN
+
+✅ Reset conversation au switch
+
+✅ Audio joue correctement
+
+I. Prochaines options
+#	Tâche	Effort
+A	Ajouter Espagnol (cours Espagnol)	Rapide
+B	Historique des conversations par étudiante	Moyen
+C	Sujets guidés (travail, voyage, école)	Moyen
+D	Créer le secrets.toml local pour tester en dev	Moyen
+text
+
+**Ctrl+S** → puis :
+
+```powershell
+git add PASSATION.md
+git commit -m "PASSATION: section 43 - Lingua Bridge Practica IA bilingue (FR + EN)"
+git pull --rebase
+git push
+Colle-moi le résultat.
+
+🎉 BILAN DE LA SESSION
+Aujourd'hui (11 octobre 2026), tu as accompli :
+
+#	Réalisation	Impact
+1	Restructuration Lingua Bridge (sorti de OneDrive)	🧹
+2	Nettoyage : 584 Mo → 16.84 Mo	💾 567 Mo libérés
+3	Venv + dépendances restaurés	🚀
+4	Práctica IA accessible aux 3 étudiantes	🎤
+5	Mode "Lección del día" buggé retiré	🐛
+6	Nom dynamique (Ingrid/Maryse/Laeticia)	👥
+7	Práctica IA bilingue FR + EN	🌍
+8	Déployé sur Streamlit Cloud	🌐
+9	Documenté (PASSATION.md sections 40-43)	📝
+Excellent travail, amigo ! 🎉🚀
+
+Fais le commit PASSATION et on s'arrête là — belle session !
+
