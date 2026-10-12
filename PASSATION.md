@@ -3487,4 +3487,82 @@ E	Autre chose	-
 4	RF Optimizer Tools	https://rf-optimizer-tools.onrender.com	HTML/CSS/JS + Render Static	✅ Live
 5	Lingua Bridge Academy	http://localhost:8501 (local)	Streamlit + Groq + Google Sheets	✅ Local
 6	RF Planner	(spec only)	FastAPI + PostGIS + Leaflet	📋 Spec
-text
+
+---
+
+## 42. Mise à jour du 11 octobre 2026 (soir) — LINGUA BRIDGE : Práctica IA multi-user
+
+### Statut : Práctica IA opérationnelle pour les 3 étudiantes ✅
+
+### A. Contexte
+
+Projet **Lingua Bridge Academy** — app Streamlit d'apprentissage d'anglais/français.
+- 👨‍🏫 **Jean Thomas Montreuil** : prof/admin
+- 👩 **Ingrid Aguirre Romero** : étudiante principale
+- 👧 **Maryse Adèle Montreuil Hinojosa** : invitée (Maryse)
+- 👧 **Laeticia Marie Carmel Montreuil** : invitée (Laeticia)
+
+**Objectif de la session** : rendre Práctica IA accessible aux 3 étudiantes + retirer le mode "Lección del día" buggé.
+
+### B. Repo & URLs
+
+| Ressource | URL |
+|---|---|
+| GitHub | https://github.com/mmjt2000/lingua-bridge-app |
+| Streamlit Cloud | https://lingua-bridge.streamlit.app |
+| Local | `C:\Dev\lingua-bridge-app\` |
+
+### C. Actions réalisées
+
+| Action | Détail |
+|---|---|
+| **Restructuration** | Déplacé de OneDrive vers `C:\Dev\lingua-bridge-app\` |
+| **Nettoyage** | 584 Mo → 16.84 Mo (PDF/PPT exclus, déjà sur GitHub) |
+| **Git** | `skip-worktree` sur les fichiers PDF/PPT/XLSX |
+| **Venv** | Python 3.12.9 + `pip install -r requirements.txt` |
+| **app.py modifié** | Práctica IA ajouté dans les menus étudiant + invité |
+| **voice_module.py** | Mode "Lección del día" retiré + prompt dynamique |
+| **Déploiement** | Push GitHub → Streamlit Cloud redéploie auto |
+
+### D. Modifications clés
+
+**`app.py`** :
+- Menu étudiant (`student`) : ajout de `("Práctica IA", "voice_ai")`
+- Menu invité (`else`) : ajout de `("Práctica IA", "voice_ai")`
+- Dashboard étudiant : `"Bienvenida, Ingrid"` → `"Bienvenida, {first_name}"`
+- Routing : ajout `elif page == "voice_ai"` pour étudiant + invité
+
+**`voice_module.py`** :
+- `llm_conversation()` : paramètre `student_name="Student"` ajouté
+- Prompt : `"Ingrid"` → `"{student_name}"`
+- `render_voice_module()` : radio "Elige el modo" retiré
+- **1 seul mode** : `render_free_conversation()` (le mode cours est retiré)
+- `render_free_conversation()` : récupère le prénom depuis `st.session_state.user`
+- Émojis corrigés (UTF-8)
+
+### E. État final
+
+**Streamlit Cloud** :
+- Práctica IA visible pour **prof + 3 étudiantes** ✅
+- Mode cours guidé **retiré** ✅
+- Conversation libre fonctionne ✅
+- Voix (TTS) + Whisper (STT) opérationnels ✅
+
+### F. Points de vigilance
+
+1. **⚠️ Le `secrets.toml` local est MANQUANT** → l'app plante en local (login crash)
+   - **En prod** : Streamlit Cloud a ses propres secrets (Settings → Secrets)
+   - **En local** : impossible de tester login sans le secrets.toml
+   - **À faire un jour** : créer un `secrets.toml` local pour tester en dev
+2. **⚠️ Ne JAMAIS travailler depuis OneDrive** — toujours `C:\Dev\`
+3. **⚠️ Le venv doit être recréé après déplacement** (chemins absolus)
+4. **⚠️ Les PDF/PPT ne sont PAS en local** (`skip-worktree` configuré)
+5. **⚠️ Streamlit Cloud met 2-3 min à redéployer** après un push
+
+### G. Commandes utiles
+
+**Local (plantera sur login à cause du secrets.toml manquant)** :
+```powershell
+cd C:\Dev\lingua-bridge-app
+.\.venv\Scripts\Activate.ps1
+streamlit run app.py
