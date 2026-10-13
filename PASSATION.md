@@ -3703,3 +3703,110 @@ Excellent travail, amigo ! 🎉🚀
 
 Fais le commit PASSATION et on s'arrête là — belle session !
 
+---
+
+## 44. Mise à jour du 13 octobre 2026 — PORTFOLIO : Automatisation préparation candidatures
+
+### Statut : Système complet opérationnel ✅
+
+### A. Objectif
+
+Automatiser la génération des 3 documents de candidature (CV + Lettre + Prépa entretien) en 1 clic sur `jobs.html`.
+
+**Avant** : 7 étapes manuelles (~15 min par offre)
+**Après** : 1 clic + watcher automatique (~30 sec)
+
+### B. Architecture
+jobs.html (bouton "📋 Préparer")
+↓ télécharge offre_XXX.txt dans Downloads/
+watch_and_prepare.py (surveille Downloads/)
+↓ charge .env
+↓ copie vers manual_offer.txt
+↓ lance prepare_manual.py
+prepare_manual.py
+↓ appelle prepare_application.py (Groq avec retry)
+↓ génère 3 documents (CV + Lettre + Prépa)
+↓ écrit applications/offer-XXX.html
+↓ copie AUSSI à la racine : offer-XXX.html
+Render (site statique)
+↓ sert https://mon-site-rf.onrender.com/offer-XXX.html
+
+text
+
+### C. Fichiers créés/modifiés
+
+| Fichier | Rôle |
+|---|---|
+| `watch_and_prepare.py` | Surveille Downloads + charge .env + lance prepare_manual.py |
+| `START_AUTO_PREPARE.bat` | Lanceur Windows (double-clic) |
+| `prepare_manual.py` | Détection échec Groq + copie racine |
+| `prepare_application.py` | Retry automatique Groq (429) |
+| `.env` | GROQ_API_KEY, ADZUNA, RESEND |
+
+### D. Corrections importantes
+
+1. **Retry automatique Groq** (`call_groq` dans `prepare_application.py`)
+   - 3 tentatives avec attentes 10s/20s/30s sur erreurs 429
+   - Retourne `None` si échec après 3 tentatives
+
+2. **Détection échec** (`prepare_manual.py`)
+   - Après chaque `generate_cv/cover_letter/interview_prep` : `if not cv: return`
+   - Évite les "faux succès" (pages avec "Génération échouée")
+
+3. **Copie racine** (`prepare_manual.py`)
+   - `root_file = MON_SITE_DIR / f"offer-{job['id']}.html"`
+   - Copie à la racine pour que Render serve le fichier
+
+4. **Chargement `.env` dans le watcher** (`watch_and_prepare.py`)
+   - Le watcher lit le `.env` avant d'appeler `prepare_manual.py`
+   - `GROQ_API_KEY` est passée en variable d'environnement
+
+5. **Détection échec dans le watcher**
+   - Détecte les `[ERROR]` dans le stdout de `prepare_manual.py`
+   - Ne dit plus "succès" si la génération a échoué
+
+### E. Points de vigilance
+
+1. **⚠️ Le `.env` doit contenir `GROQ_API_KEY`** (56 caractères, format `gsk_...`)
+2. **⚠️ Groq Free Tier** : ~30 req/min + quota journalier
+   - Si rate limit → attendre 10-15 min
+   - Le retry automatique gère les 429 jusqu'à 3 tentatives (~60s max)
+3. **⚠️ Le watcher doit tourner** pendant que tu cliques "Préparer"
+4. **⚠️ Ne PAS relancer `prepare_manual.py` manuellement** si le watcher tourne
+5. **⚠️ URL Render** : `https://mon-site-rf.onrender.com/offer-XXX.html` (racine, pas `/applications/`)
+6. **⚠️ Le portfolio est dans OneDrive** — comme Lingua Bridge, à déplacer vers `C:\Dev\portfolio\` un jour
+
+### F. Commandes utiles
+
+**Lancer le watcher** :
+```powershell
+cd "C:\Users\Utilisateur\OneDrive\Escritorio\Nouveau Coulou\Mon site"
+.\START_AUTO_PREPARE.bat
+Lancer prepare_manual.py manuellement :
+
+powershell
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^([^=]+)=(.*)$') {
+        [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
+    }
+}
+python prepare_manual.py
+G. Résultat validé
+4 candidatures générées et accessibles en ligne :
+
+offer-8a0ed539.html — MDA Space (Intermediate Technician RF)
+
+offer-38c18093.html — Huawei (Engineer RF & Antenna)
+
+offer-19589f12.html — Artelia (Network & Automation Technician)
+
+offer-15191ad7.html — Aktalent (RF System Verification Engineer)
+
+H. Améliorations futures possibles
+#	Idée	Effort
+1	Déplacer le portfolio hors OneDrive (C:\Dev\portfolio\)	Moyen
+2	Auto-push après génération (dans le watcher)	Rapide
+3	Fix markdown tables (affichage brut)	Rapide
+4	Notification Windows toast à la fin	Rapide
+5	Historique des candidatures générées	Moyen
+
