@@ -3810,3 +3810,216 @@ H. Améliorations futures possibles
 4	Notification Windows toast à la fin	Rapide
 5	Historique des candidatures générées	Moyen
 
+---
+
+## 45. Mise à jour du 13 octobre 2026 — PORTFOLIO : Infographies RF interactives
+
+### Statut : Première infographie en ligne ✅
+
+### A. Contexte
+
+Création d'une **collection d'infographies techniques RF** pour le portfolio, inspirée du style de Chhavi Gupta (CGNG Telecom) mais adaptée à l'empreinte visuelle de Jean Thomas (cyan/violet/noir).
+
+**Objectif** : Expliquer visuellement des concepts RF complexes (5G, RAN, protocoles) pour :
+- Recruteurs (montrer l'expertise)
+- LinkedIn (partage)
+- Portfolio (crédibilité technique)
+
+### B. Fichiers créés
+
+| Fichier | Rôle |
+|---|---|
+| `infographics.html` | Page index de la collection |
+| `infographics/5g-gnodeb.html` | Première infographie : "How a 5G gNodeB works" |
+
+### C. Architecture du dossier
+---
+
+## 45. Mise à jour du 13 octobre 2026 — PORTFOLIO : Infographies RF interactives
+
+### Statut : Première infographie en ligne ✅
+
+### A. Contexte
+
+Création d'une **collection d'infographies techniques RF** pour le portfolio, inspirée du style de Chhavi Gupta (CGNG Telecom) mais adaptée à l'empreinte visuelle de Jean Thomas (cyan/violet/noir).
+
+**Objectif** : Expliquer visuellement des concepts RF complexes (5G, RAN, protocoles) pour :
+- Recruteurs (montrer l'expertise)
+- LinkedIn (partage)
+- Portfolio (crédibilité technique)
+
+### B. Fichiers créés
+
+| Fichier | Rôle |
+|---|---|
+| `infographics.html` | Page index de la collection |
+| `infographics/5g-gnodeb.html` | Première infographie : "How a 5G gNodeB works" |
+
+### C. Architecture du dossier
+Mon site/
+├── infographics.html ← Page index
+└── infographics/
+├── 5g-gnodeb.html ← Infographie interactive
+└── 5g-gnodeb_BACKUP.html ← Backup (local, non pushé)
+
+text
+
+### D. Fonctionnalités de l'infographie
+
+**Design :**
+- Header avec branding "JEAN THOMAS MONTEZUMA MONTREUIL"
+- Architecture disaggregated gNB (AMF, UPF, CU-CP, CU-UP, DU, RU)
+- 7 protocoles colorés (RRC, SDAP, PDCP, RLC, MAC, PHY, RF)
+- 6 interfaces labellisées (N2, N3, E1, F1, FH, Uu)
+- Pipeline 6 étapes (Control → Uplink)
+
+**Interactivité :**
+| Feature | Description |
+|---|---|
+| **Tooltips** | Survol boîtes + protocoles + interfaces → bulle explicative |
+| **Modales** | Clic sur boîte → modal avec rôle + interfaces détaillées |
+| **Animation flux** | 📦 voyage UPF → CU-UP → DU → RU → UE avec highlight des composants |
+| **Compteur d'étapes** | "3/5 · DU — Arrive au DU via F1-U" en temps réel |
+| **Contrôles** | ▶ Play / ⏸ Pause / 🔄 Replay / Vitesse (0.5x, 1x, 2x) |
+| **Pipeline interactif** | Clic sur étape → boîte de détail change (titre + texte + couleur) |
+
+**Détails dynamiques par étape :**
+| Étape | Couleur | Texte | Interface |
+|---|---|---|---|
+| 1 CONTROL | cyan | CU-CP configures RRC connection | N2 · RRC · F1-C |
+| 2 USER DATA | violet | SDAP maps QoS flows to DRBs | N3 · SDAP · GTP-U |
+| 3 SCHEDULE | magenta | MAC assigns radio resources every 0.5 ms | MAC · PRB · HARQ |
+| 4 BEAMFORM | orange | PHY/RU applies spatial preprocessing | Massive MIMO · SSB · CSI-RS |
+| 5 DOWNLINK | vert | RU transmits RF symbols to UE | OFDM · Uu |
+| 6 UPLINK | cyan | UE transmits, gNB decodes + HARQ | PUCCH · PUSCH · HARQ |
+
+### E. Intégration au portfolio
+
+**Menu principal (`index.html`)** — ajout de :
+```html
+<a href="infographics.html">📊 Infographies</a>
+Position : entre "📝 Blog" et "Contact"
+
+F. URLs en production
+Ressource	URL
+Index infographies	https://mon-site-rf.onrender.com/infographics.html
+5G gNodeB	https://mon-site-rf.onrender.com/infographics/5g-gnodeb.html
+G. Points de vigilance
+⚠️ VS Code obligatoire pour les gros fichiers HTML (Notepad tronque au-delà de ~700 lignes)
+
+⚠️ Utiliser PowerShell @'...'@ pour créer les fichiers (plus fiable que copier-coller)
+
+⚠️ Éviter les tirets - dans les messages git commit -m (PowerShell les interprète)
+
+⚠️ Le <script> doit être ENTIER — vérifier avec Select-String "function toggleFlow"
+
+⚠️ Toujours tester avec Ctrl+Shift+R (cache Chrome agressif)
+
+H. Backlog — Prochaines infographies
+#	Titre	Effort
+1	RSRP vs RSRQ vs SINR	Facile
+2	Massive MIMO Explained	Moyen
+3	VoLTE Call Flow	Élevé
+4	Handover 4G/5G (X2/Xn)	Moyen
+5	5G Core (SBA)	Moyen
+6	Beam Management 5G	Élevé
+7	Open RAN (O-RAN)	Moyen
+8	Carrier Aggregation	Moyen
+Mon site/
+├── infographics.html ← Page index
+└── infographics/
+├── 5g-gnodeb.html ← Infographie interactive
+└── 5g-gnodeb_BACKUP.html ← Backup (local, non pushé)
+
+text
+
+### D. Fonctionnalités de l'infographie
+
+**Design :**
+- Header avec branding "JEAN THOMAS MONTEZUMA MONTREUIL"
+- Architecture disaggregated gNB (AMF, UPF, CU-CP, CU-UP, DU, RU)
+- 7 protocoles colorés (RRC, SDAP, PDCP, RLC, MAC, PHY, RF)
+- 6 interfaces labellisées (N2, N3, E1, F1, FH, Uu)
+- Pipeline 6 étapes (Control → Uplink)
+
+**Interactivité :**
+| Feature | Description |
+|---|---|
+| **Tooltips** | Survol boîtes + protocoles + interfaces → bulle explicative |
+| **Modales** | Clic sur boîte → modal avec rôle + interfaces détaillées |
+| **Animation flux** | 📦 voyage UPF → CU-UP → DU → RU → UE avec highlight des composants |
+| **Compteur d'étapes** | "3/5 · DU — Arrive au DU via F1-U" en temps réel |
+| **Contrôles** | ▶ Play / ⏸ Pause / 🔄 Replay / Vitesse (0.5x, 1x, 2x) |
+| **Pipeline interactif** | Clic sur étape → boîte de détail change (titre + texte + couleur) |
+
+**Détails dynamiques par étape :**
+| Étape | Couleur | Texte | Interface |
+|---|---|---|---|
+| 1 CONTROL | cyan | CU-CP configures RRC connection | N2 · RRC · F1-C |
+| 2 USER DATA | violet | SDAP maps QoS flows to DRBs | N3 · SDAP · GTP-U |
+| 3 SCHEDULE | magenta | MAC assigns radio resources every 0.5 ms | MAC · PRB · HARQ |
+| 4 BEAMFORM | orange | PHY/RU applies spatial preprocessing | Massive MIMO · SSB · CSI-RS |
+| 5 DOWNLINK | vert | RU transmits RF symbols to UE | OFDM · Uu |
+| 6 UPLINK | cyan | UE transmits, gNB decodes + HARQ | PUCCH · PUSCH · HARQ |
+
+### E. Intégration au portfolio
+
+**Menu principal (`index.html`)** — ajout de :
+```html
+<a href="infographics.html">📊 Infographies</a>
+Position : entre "📝 Blog" et "Contact"
+
+F. URLs en production
+Ressource	URL
+Index infographies	https://mon-site-rf.onrender.com/infographics.html
+5G gNodeB	https://mon-site-rf.onrender.com/infographics/5g-gnodeb.html
+G. Points de vigilance
+⚠️ VS Code obligatoire pour les gros fichiers HTML (Notepad tronque au-delà de ~700 lignes)
+
+⚠️ Utiliser PowerShell @'...'@ pour créer les fichiers (plus fiable que copier-coller)
+
+⚠️ Éviter les tirets - dans les messages git commit -m (PowerShell les interprète)
+
+⚠️ Le <script> doit être ENTIER — vérifier avec Select-String "function toggleFlow"
+
+⚠️ Toujours tester avec Ctrl+Shift+R (cache Chrome agressif)
+
+H. Backlog — Prochaines infographies
+#	Titre	Effort
+1	RSRP vs RSRQ vs SINR	Facile
+2	Massive MIMO Explained	Moyen
+3	VoLTE Call Flow	Élevé
+4	Handover 4G/5G (X2/Xn)	Moyen
+5	5G Core (SBA)	Moyen
+6	Beam Management 5G	Élevé
+7	Open RAN (O-RAN)	Moyen
+8	Carrier Aggregation	Moyen
+
+I. Style visuel — Charte des infographies
+Couleurs :
+
+Fond : #070b14 (noir bleuté)
+
+Cartes : #0f1524 / #141b2e
+
+Cyan : #00d4ff
+
+Violet : #7c3aed
+
+Magenta : #e91e63
+
+Orange : #FF6B35
+
+Vert : #10b981
+
+Texte : #e6edf7
+
+Muted : #94a3b8
+
+Typographie :
+
+Police : 'Segoe UI', system-ui, sans-serif
+
+Titres : 800 weight, gradient cyan→violet
+
+Labels : uppercase, letter-spacing 1.5px
