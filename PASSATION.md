@@ -4217,3 +4217,121 @@ Suite aux 9 infographies créées les 13-14 octobre, refonte complète de l'inde
 - Case studies chiffrés
 - CTA professionnels
 - 10 infographies interactives
+
+---
+
+## 48. Mise à jour du 14 octobre 2026 (soir) — PORTFOLIO : 13 infographies + Diagnostic complet
+
+### Statut : Collection complète et en ligne ✅
+
+### A. Nouvelles infographies créées aujourd'hui
+
+| # | Fichier | Titre | Catégorie |
+|---|---|---|---|
+| 10 | `5g-capacity.html` | Capacity Optimization 4G/5G | Optimisation |
+| 11 | `5g-pim-cocanal.html` | PIM vs Co-canal Interference | Diagnostic |
+| 12 | `5g-kpi-rca.html` | KPI Root Cause Analysis | Diagnostic |
+| 13 | `5g-spectrum-refarming.html` | Spectrum Refarming | Diagnostic |
+
+### B. Structure finale (5 catégories)
+
+| # | Catégorie | Count | Infographies |
+|---|---|---|---|
+| 1 | 🏗️ **Architecture & Core** | 3 | gNodeB, Open RAN, 5G Core SBA |
+| 2 | 📡 **Radio & Antennes** | 2 | Massive MIMO, Beam Management |
+| 3 | 📊 **Optimisation & Performance** | 4 | RSRP, Pa/Pb, Handover, Capacity |
+| 4 | 🔬 **Diagnostic & Troubleshooting** | 3 | PIM vs Co-canal, KPI RCA, Spectrum Refarming |
+| 5 | 📞 **Services & Voix** | 1 | VoLTE / CSFB / VoNR |
+
+**Total : 13 infographies actives, 0 teaser**
+
+### C. Features par nouvelle infographie
+
+**Capacity Optimization 4G/5G :**
+- Sélecteur 4G/5G
+- 4 piliers : Spectrum, MIMO, Modulation, Scheduling
+- 9 paramètres par mode
+- Simulateur (BW + MIMO + Mod + Users → débit)
+- 4 anomalies capacité
+
+**PIM vs Co-canal :**
+- 2 cartes cliquables (PIM, Co-canal)
+- Diagramme signal comparison
+- KPI signatures comparés
+- Diagnostic flow 4 étapes
+- Tableau comparatif complet
+- 6 anomalies avec fixes
+
+**KPI Root Cause Analysis :**
+- Chaîne causale : SINR→CQI→MCS→TP→QoE
+- 4 scenarios root cause
+- 6 KPI à vérifier
+- Simulateur diagnostic (SINR + PRB + RSRP → verdict)
+- 6 anomalies
+
+**Spectrum Refarming :**
+- Timeline évolution bande (2G→3G→4G→5G)
+- 3 stratégies : Classic, DSS, Progressive
+- 6 bandes courantes
+- Simulateur (% legacy/4G/5G → capacité/couverture)
+- 6 anomalies refarming
+
+### D. Commits clés de la session
+
+| Commit | Description |
+|---|---|
+| `ae58492` | Refonte index - 3 catégories + CTA + branding Senior |
+| `46a3d79` | Add case studies to Power Boosting, RSRP, Handover |
+| `4d0b79a` | Add final 3 case studies - all 9 infographics complete |
+| `6e7142e` | VoLTE 3 modes VoLTE CSFB VoNR + Anomalies section |
+| `b8cef0f` | Update VoLTE card with 3 modes and anomalies |
+| `9c0d838` | Add Capacity Optimization 4G/5G infographic |
+| `d7b7b1` | Restructure infographics index with 5 categories |
+| `9041ee7` | Add PIM vs Co-canal interference infographic |
+| `906b9bf` | Add KPI Root Cause Analysis infographic |
+| `5c27dac` | Add Spectrum Refarming infographic |
+| `2736fbd` | Activate 3 Diagnostic cards - 13 infographies |
+
+### E. URLs
+
+| Ressource | URL |
+|---|---|
+| Index | https://mon-site-rf.onrender.com/infographics.html |
+| Capacity | https://mon-site-rf.onrender.com/infographics/5g-capacity.html |
+| PIM vs Co-canal | https://mon-site-rf.onrender.com/infographics/5g-pim-cocanal.html |
+| KPI RCA | https://mon-site-rf.onrender.com/infographics/5g-kpi-rca.html |
+| Spectrum Refarming | https://mon-site-rf.onrender.com/infographics/5g-spectrum-refarming.html |
+
+### F. Points de vigilance
+
+1. **⚠️ Toujours `git status` avant `git push`** — le script PowerShell modifie localement, il faut pusher ensuite
+2. **⚠️ `Ctrl+Shift+R` obligatoire** après push (cache Chrome agressif)
+3. **⚠️ Attendre 1-2 min** que Render redéploie
+4. **⚠️ Vérifier sur https://mon-site-rf.onrender.com** — ne pas confondre avec les fichiers locaux
+5. **⚠️ Le portfolio est toujours dans OneDrive** — à migrer un jour vers C:\Dev\
+
+### G. Idées futures (backlog)
+
+- 🛠️ **Outils du Senior RF** (Atoll, TEMS, Nemo, Python, MATLAB)
+- ⚡ **EMF & Conformité ANFR** (réglementaire)
+- 🌍 **Version anglaise** des infographies
+- 📹 **Export vidéo MP4** pour LinkedIn
+- 🤖 **Publication automatique LinkedIn** via API
+- 📊 **Analytics** (Plausible, Umami) sur les infographies
+
+### H. Bilan de la session 14 octobre 2026
+
+**Journée très productive :**
+- ✅ 4 nouvelles infographies (Capacity, PIM, RCA, Spectrum)
+- ✅ 1 refonte index (5 catégories, 13 cartes actives)
+- ✅ 9 Case Studies ajoutés (5 réels + 4 illustratifs)
+- ✅ VoLTE 3 modes + Anomalies (14 anomalies détaillées)
+- ✅ Boutons LinkedIn + Contact dans topbar
+- ✅ CTA contextuels par catégorie
+- ✅ Documentation PASSATION (sections 47-48)
+
+**Le portfolio RF est maintenant à un niveau Senior professionnel complet :**
+- Architecture + Optimisation + Diagnostic + Voix
+- 13 infographies interactives avec simulateurs
+- Case studies chiffrés (impact business)
+- Positionnement "Expert en Architecture et Optimisation Radio"
