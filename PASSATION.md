@@ -4473,3 +4473,95 @@ Cancel + Manual Deploy
 Attendre 30 min et retenter
 
 Un git commit --allow-empty peut forcer un redéploiement
+---
+
+## 50. Mise à jour du 14 octobre 2026 (soir) — LinkedIn → 3 documents automatiques
+
+### Statut : Pipeline complet opérationnel ✅
+
+### A. Contexte
+
+Les offres LinkedIn ont maintenant un bouton "📋 Préparer" qui déclenche la génération automatique des 3 documents (CV + Lettre + Prépa).
+
+### B. Test réussi (14 oct 2026, 18h08)
+
+**Offre testée** : "Ingénieur RF" @ YRH Inc. (Montreal, Quebec, Canada)
+
+**URL publique** : https://mon-site-rf.onrender.com/offer-2b1618cb.html
+
+**Pipeline exécuté :**
+1. Clic "📋 Préparer" sur l'offre LinkedIn
+2. Téléchargement `offre_Ingénieur_RF.txt`
+3. Watcher détecte en 2 sec
+4. Copie vers `manual_offer.txt`
+5. Lance `prepare_manual.py`
+6. Génère 3 documents par Groq IA
+7. Page HTML : `offer-2b1618cb.html` (racine + applications/)
+8. Push GitHub → Render redéploie
+
+### C. Contenu généré (qualité Senior)
+
+**CV optimisé ATS :**
+- Titre : "Ingénieur RF – Optimisation & Migration Réseaux (2G/3G/4G/5G)"
+- 7+ ans d'expérience mis en avant
+- Mots-clés ATS alignés avec YRH Inc.
+- Compétences : LTE, 5G, VoLTE, SRVCC, CSFB, Huawei, Ericsson, ZTE, Atoll, TEMS, NEMO
+
+**Lettre de motivation :**
+- En-tête personnalisé
+- Destinataire YRH Inc. — Service Recrutement
+- Accroche mission YRH
+- Référence projets Digicel (MAKO, 400 sites)
+- Chiffres : +22% débit LTE, -15% drop call
+
+**Préparation entretien :**
+- Recherche entreprise YRH Inc.
+- Secteur : Massive MIMO, 5G, défense
+- Clients : Bell, Rogers, gouvernement
+- Projets récents : 3GPP Release 18, Massive-MIMO Montréal
+
+### D. Commits
+
+| Commit | Description |
+|---|---|
+| `cc67a05` | Add Prepare button on LinkedIn job offers |
+| `9f9418a` | Add: candidature LinkedIn - Ingenieur RF YRH Inc. |
+
+### E. Ce qui marche
+
+| Étape | Statut |
+|---|---|
+| Bouton "📋 Préparer" LinkedIn | ✅ |
+| Téléchargement `.txt` | ✅ |
+| Watcher détecte | ✅ |
+| 3 documents générés | ✅ |
+| Page HTML accessible en ligne | ✅ |
+| Contenu de qualité Senior | ✅ |
+
+### F. Points de vigilance
+
+1. **⚠️ Le fichier doit être copié à la racine** (`offer-XXX.html`) pour être servi par Render
+2. **⚠️ Push obligatoire** après génération (sinon 404 sur Render)
+3. **⚠️ Render peut être lent** (2 min à 30 min selon la charge)
+4. **⚠️ OneDrive peut bloquer le push** → pause OneDrive 2h avant session
+
+### G. Prochaines étapes
+
+1. **📋 Scraper les descriptions complètes** des offres LinkedIn (pour améliorer la génération)
+2. **🎯 Scoring intelligent** LinkedIn (comme Adzuna)
+3. **🌍 Migrer le portfolio hors OneDrive** (`C:\Dev\portfolio\`)
+4. **📊 Analytics** sur les clics "Préparer"
+
+### H. Bilan de la session 14 octobre 2026
+
+**Journée exceptionnellement productive :**
+- ✅ 4 nouvelles infographies RF (Capacity, PIM, RCA, Spectrum)
+- ✅ Refonte index infographies (5 catégories, 13 cartes)
+- ✅ 9 Case Studies ajoutés (5 réels + 4 illustratifs)
+- ✅ VoLTE 3 modes + 14 anomalies
+- ✅ LinkedIn Jobs intégré (3ème onglet + bouton Préparer)
+- ✅ Workflow GitHub Actions (LinkedIn quotidien)
+- ✅ Pipeline LinkedIn → 3 documents automatique
+- ✅ Documentation PASSATION (sections 47-50)
+
+**Le portfolio et le système d'emploi sont maintenant à un niveau Senior professionnel complet.**
