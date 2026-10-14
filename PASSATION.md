@@ -4335,3 +4335,141 @@ Suite aux 9 infographies créées les 13-14 octobre, refonte complète de l'inde
 - 13 infographies interactives avec simulateurs
 - Case studies chiffrés (impact business)
 - Positionnement "Expert en Architecture et Optimisation Radio"
+
+---
+
+## 49. Mise à jour du 14 octobre 2026 (nuit) — LinkedIn Jobs intégré au Portfolio
+
+### Statut : Système LinkedIn complet et opérationnel ✅
+
+### A. Contexte
+
+Ajout d'une 3ème source d'offres d'emploi (LinkedIn) en complément d'Adzuna et Remotive.
+
+**Objectif** : ne plus dépendre uniquement d'Adzuna + capter les offres publiées uniquement sur LinkedIn.
+
+### B. Fichiers créés
+
+| Fichier | Rôle |
+|---|---|
+| `fetch_linkedin_jobs.py` | Scrape 30 offres LinkedIn via l'API guest |
+| `inject_linkedin_jobs.py` | Injecte les offres + boutons Préparer dans jobs.html |
+| `linkedin_jobs.json` | Base locale des offres LinkedIn |
+| `.github/workflows/fetch_linkedin.yml` | Automatisation quotidienne (6h UTC) |
+
+### C. Modifications dans jobs.html
+
+**3ème onglet :**
+```html
+<button class="tab" data-tab="linkedin">
+  🔗 LinkedIn
+  <span class="count" id="count-linkedin">30</span>
+</button>
+
+<div id="tab-linkedin" class="tab-content">
+  <div id="linkedin-jobs-container">
+    <!-- LINKEDIN_JOBS_START -->
+    ...
+    <!-- LINKEDIN_JOBS_END -->
+  </div>
+</div>
+D. Workflow GitHub Actions
+Nom : Fetch LinkedIn Jobs
+Fréquence : quotidien à 6h UTC (2h Montréal)
+Run testé : ✅ #1 réussi en 26 secondes
+
+Étapes :
+
+Checkout repository
+
+Setup Python 3.12
+
+Install dependencies (requests, beautifulsoup4)
+
+Fetch LinkedIn jobs (fetch_linkedin_jobs.py)
+
+Inject in jobs.html (inject_linkedin_jobs.py)
+
+Commit + push si changement
+
+E. Fonctionnement
+En local (manuel) :
+
+powershell
+cd "C:\Users\Utilisateur\OneDrive\Escritorio\Nouveau Coulou\Mon site"
+python fetch_linkedin_jobs.py     # Scrape 30 offres
+python inject_linkedin_jobs.py    # Injecte dans jobs.html
+En automatique (GitHub Actions) :
+
+Workflow quotidien à 6h UTC
+
+Trigger manuel possible depuis l'onglet Actions
+
+F. Limites techniques
+⚠️ API non officielle : LinkedIn n'a pas d'API publique pour la recherche d'emploi.
+
+Le script utilise : linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search (endpoint public non documenté).
+
+Risques :
+
+LinkedIn peut modifier son HTML → script à adapter
+
+Rate limiting IP (pauses 2-4s entre pages)
+
+Pas de description complète (téléchargée à vide actuellement)
+
+Pas de scoring (contrairement aux offres Adzuna)
+
+G. Problème Render (résolu)
+Symptôme : Deploy bloqué sur "Building" pendant 22+ min (2 deploys en conflit).
+
+Cause : Deux deploys lancés simultanément (Manual + Auto-Deploy) → conflit de lock.
+
+Solution :
+
+Cancel des deploys bloqués
+
+Attente que ça se débloque tout seul
+
+Render a fini par redéployer (~1h après)
+
+Note : Render Free tier peut être TRÈS lent aux heures de pointe.
+
+H. Commit clés
+Commit	Description
+2fd452b	Add LinkedIn jobs fetch script
+ae261c0	Add LinkedIn tab with 30 jobs integrated in jobs.html
+17e3bf7	Add GitHub Actions workflow for daily LinkedIn jobs update
+cc67a05	Add Prepare button on LinkedIn job offers
+I. Ce qui marche
+Composant	Statut
+Scraping LinkedIn (30 offres)	✅
+Injection dans jobs.html	✅
+3ème onglet LinkedIn visible	✅
+Bouton "📋 Préparer" fonctionnel	✅
+Fichier offre_XXX.txt téléchargé	✅
+Workflow GitHub Actions	✅ Run #1 réussi
+Render en ligne	✅
+J. Prochaines étapes
+📋 Scraper les descriptions complètes des offres LinkedIn (pour le bouton Préparer)
+
+🎯 Scoring intelligent (comme pour Adzuna)
+
+🌍 Sortir le portfolio de OneDrive (problème récurrent)
+
+📊 Analytics sur les clics "Préparer"
+
+K. Leçon de la session
+OneDrive + Git = problème récurrent. Solutions :
+
+Mettre OneDrive en pause avant chaque session Git
+
+Ou migrer vers C:\Dev\portfolio\ (solution définitive)
+
+Render Free tier peut être très lent aux heures de pointe. Ne pas hésiter à :
+
+Cancel + Manual Deploy
+
+Attendre 30 min et retenter
+
+Un git commit --allow-empty peut forcer un redéploiement
