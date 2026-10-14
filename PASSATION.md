@@ -4023,3 +4023,197 @@ Police : 'Segoe UI', system-ui, sans-serif
 Titres : 800 weight, gradient cyan→violet
 
 Labels : uppercase, letter-spacing 1.5px
+
+---
+
+## 46. Mise à jour du 13-14 octobre 2026 — PORTFOLIO : 9 infographies RF interactives
+
+### Statut : Collection complète et en ligne ✅
+
+### A. Contexte
+
+Création d'une collection d'infographies techniques RF pour le portfolio, inspirée du style de Chhavi Gupta (CGNG Telecom) mais adaptée à l'empreinte visuelle de Jean Thomas (cyan/violet/noir).
+
+**Objectif** : Expliquer visuellement des concepts RF complexes pour :
+- Recruteurs (montrer l'expertise)
+- LinkedIn (partage)
+- Portfolio (crédibilité technique)
+
+### B. Fichiers créés (9 infographies)
+
+| # | Fichier | Titre |
+|---|---|---|
+| 1 | `infographics/5g-gnodeb.html` | How a 5G gNodeB works |
+| 2 | `infographics/5g-massive-mimo.html` | Massive MIMO Explained |
+| 3 | `infographics/5g-power-boosting.html` | Power Boosting 4G/5G (Pa/Pb) |
+| 4 | `infographics/5g-openran.html` | Open RAN (O-RAN) |
+| 5 | `infographics/5g-rsrp-rsrq-sinr.html` | RSRP, RSRQ, SINR |
+| 6 | `infographics/5g-core-sba.html` | 5G Core (SBA) |
+| 7 | `infographics/5g-handover.html` | Handover 4G/5G (avec sélecteur) |
+| 8 | `infographics/5g-volte.html` | VoLTE Call Flow |
+| 9 | `infographics/5g-beam-management.html` | Beam Management 5G |
+| — | `infographics.html` | Page index (9 cartes) |
+
+### C. URLs
+
+| Ressource | URL |
+|---|---|
+| Index | https://mon-site-rf.onrender.com/infographics.html |
+| gNodeB | https://mon-site-rf.onrender.com/infographics/5g-gnodeb.html |
+| Massive MIMO | https://mon-site-rf.onrender.com/infographics/5g-massive-mimo.html |
+| Power Boosting | https://mon-site-rf.onrender.com/infographics/5g-power-boosting.html |
+| Open RAN | https://mon-site-rf.onrender.com/infographics/5g-openran.html |
+| RSRP/RSRQ/SINR | https://mon-site-rf.onrender.com/infographics/5g-rsrp-rsrq-sinr.html |
+| 5G Core | https://mon-site-rf.onrender.com/infographics/5g-core-sba.html |
+| Handover | https://mon-site-rf.onrender.com/infographics/5g-handover.html |
+| VoLTE | https://mon-site-rf.onrender.com/infographics/5g-volte.html |
+| Beam Management | https://mon-site-rf.onrender.com/infographics/5g-beam-management.html |
+
+### D. Caractéristiques techniques
+
+**Chaque infographie contient :**
+- Design dark tech cohérent (fond #070b14)
+- Accents cyan (#00d4ff), violet (#7c3aed), orange (#FF6B35)
+- Branding "JT MONTREUIL / SENIOR RF ENGINEER"
+- **Pas de nom complet** en haut à gauche (retiré)
+- **Source: 3GPP** en pied de page
+- Tooltips au survol
+- Modales détaillées au clic
+- Bouton "Télécharger PDF"
+
+**Features spécifiques :**
+| Infographie | Features |
+|---|---|
+| gNodeB | Animation flux 📦 + Pipeline interactif |
+| Massive MIMO | Simulateur (4→256 antennes) |
+| Power Boosting | Matrice Pa/Pb + Simulateur 3 sliders |
+| Open RAN | Architecture verticale + Interfaces A1/E2/O1/F1 |
+| RSRP/SINR | Simulateur 3 sliders + Verdict dynamique |
+| 5G Core SBA | Bus SBA + 8 NFs |
+| Handover | **Sélecteur 4G/5G** + Animation 5 étapes |
+| VoLTE | Diagramme IMS + Animation 5 phases |
+| Beam Management | Diagramme faisceaux + Animation |
+
+### E. Intégration au portfolio
+
+**Menu principal (`index.html`)** — ajout de :
+```html
+<a href="infographics.html">📊 Infographies</a>
+
+---
+
+## 47. Mise à jour du 14 octobre 2026 — PORTFOLIO : Refonte Senior + 10 infographies
+
+### Statut : Portfolio RF Senior complet et en ligne ✅
+
+### A. Contexte
+
+Suite aux 9 infographies créées les 13-14 octobre, refonte complète de l'index + ajout de contenu Senior (Case Studies, Anomalies, VoLTE 3 modes, Capacity Optimization).
+
+**Objectif** : Passer d'un portfolio "technique" à un portfolio **Senior** qui montre la maîtrise du diagnostic, l'impact business et la vision stratégique.
+
+### B. Fichiers créés/modifiés
+
+| Fichier | Rôle |
+|---|---|
+| `infographics.html` | Index refondu en 5 catégories |
+| `infographics/5g-volte.html` | VoLTE / CSFB / VoNR (3 modes) + Anomalies |
+| `infographics/5g-capacity.html` | Capacity Optimization 4G/5G (nouveau) |
+| `infographics/5g-*.html` (8 autres) | Case Studies ajoutés |
+
+### C. Structure de l'index (5 catégories)
+
+| # | Catégorie | Count | Infographies |
+|---|---|---|---|
+| 1 | 🏗️ **Architecture & Core** | 3 | gNodeB, Open RAN, 5G Core SBA |
+| 2 | 📡 **Radio & Antennes** | 2 | Massive MIMO, Beam Management |
+| 3 | 📊 **Optimisation & Performance** | 4 | RSRP/RSRQ/SINR, Power Boosting, Handover, **Capacity** |
+| 4 | 🔬 **Diagnostic & Troubleshooting** | 3 teasers | PIM vs Co-canal, KPI RCA, Spectrum Refarming |
+| 5 | 📞 **Services & Voix** | 1 | VoLTE / CSFB / VoNR |
+
+**Total : 10 infographies actives + 3 teasers = 13 slots**
+
+### D. Améliorations Seniors
+
+**1. Case Studies (9 infographies)**
+- 5 cas réels (Digicel/Huawei)
+- 4 cas illustratifs (industrie 5G)
+- Format : chiffre en gros + contexte + action + résultat + outil
+
+**2. VoLTE 3 modes (sélecteur dynamique)**
+- 🔵 VoLTE (cyan) — IMS 4G
+- 🟠 CSFB (orange) — Fallback 2G/3G (6 phases)
+- 🟣 VoNR (violet) — 5G SA
+
+**3. Section "Anomalies & Diagnostic"** (par mode)
+- CSFB : 6 anomalies (TAC/LAC, SGs, SIB 6/7/8, RRC Redirect, Combined Attach, Priority)
+- VoLTE : 4 anomalies (MOS, jitter, packet loss, codec)
+- VoNR : 4 anomalies (EPS Fallback, 5QI, IMS Reg, NR→LTE HO)
+- Format : icône + titre + description + **Fix**
+
+**4. Capacity Optimization 4G/5G**
+- 4 piliers : Spectrum, MIMO, Modulation, Scheduling
+- Sélecteur 4G/5G
+- 9 paramètres par mode
+- Simulateur interactif (BW + MIMO + Mod + Users → débit)
+- 4 anomalies capacité
+
+**5. Topbar + Footer**
+- Boutons LinkedIn + Contact (mailto) en haut
+- Footer avec 3 liens (LinkedIn, Email, Portfolio)
+
+### E. URLs
+
+| Ressource | URL |
+|---|---|
+| Index refondu | https://mon-site-rf.onrender.com/infographics.html |
+| VoLTE 3 modes | https://mon-site-rf.onrender.com/infographics/5g-volte.html |
+| Capacity 4G/5G | https://mon-site-rf.onrender.com/infographics/5g-capacity.html |
+
+### F. Commits clés
+
+| Commit | Description |
+|---|---|
+| `ae58492` | Refonte index - 3 catégories + CTA + branding Senior |
+| `46a3d79` | Add case studies to Power Boosting, RSRP, Handover |
+| `4d0b79a` | Add final 3 case studies - all 9 infographics complete |
+| `6e7142e` | VoLTE 3 modes VoLTE CSFB VoNR + Anomalies section |
+| `b8cef0f` | Update VoLTE card with 3 modes and anomalies |
+| `9c0d838` | Add Capacity Optimization 4G/5G infographic |
+| `d7b7b1` | Restructure infographics index with 5 categories |
+
+### G. Points de vigilance
+
+1. **⚠️ CSS grid** : toujours `repeat(3,1fr)` (pas `auto-fill`)
+2. **⚠️ min-height:420px** sur les cartes
+3. **⚠️ VS Code obligatoire** pour les gros fichiers (Notepad tronque)
+4. **⚠️ Ctrl+Shift+R** après chaque push (cache Chrome)
+5. **⚠️ Portfolio encore dans OneDrive** (à déplacer un jour)
+
+### H. Backlog Phase 3 (3 infographies "à venir")
+
+| # | Titre | Priorité |
+|---|---|---|
+| 11 | 🔍 **PIM vs Co-canal Interference** | 🔥🔥🔥 |
+| 12 | 🩺 **KPI Root Cause Analysis** | 🔥🔥🔥 |
+| 13 | 📻 **Spectrum Refarming** | 🔥🔥🔥 |
+
+**Ces 3 compléteront la section "Diagnostic & Troubleshooting".**
+
+### I. Idées futures
+
+- 🛠️ **Outils du Senior RF** (Atoll, TEMS, Nemo, Python, MATLAB)
+- ⚡ **EMF & Conformité ANFR** (réglementaire)
+- 🌍 **Version anglaise** des infographies
+- 📹 **Export vidéo MP4** pour LinkedIn
+- 🤖 **Publication automatique LinkedIn** via API
+
+### J. Leçon de la session
+
+**Toujours donner le fichier COMPLET plutôt que des patches partiels** quand un bug persiste au-delà de 2 tentatives. Les patches partiels créent des doublons et erreurs.
+
+**Le portfolio est maintenant à un niveau Senior professionnel :**
+- Architecture + Optimisation + Voix + Diagnostic
+- Case studies chiffrés
+- CTA professionnels
+- 10 infographies interactives
