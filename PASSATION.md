@@ -4565,3 +4565,166 @@ Les offres LinkedIn ont maintenant un bouton "📋 Préparer" qui déclenche la 
 - ✅ Documentation PASSATION (sections 47-50)
 
 **Le portfolio et le système d'emploi sont maintenant à un niveau Senior professionnel complet.**
+
+
+📄 TEXTE À AJOUTER (copie-colle à la FIN de PASSATION.md)
+markdown
+---
+
+## 51. Mise à jour du 15 octobre 2026 — RF PLANNER v1.0 (LIVE sur Render)
+
+### Statut : Production complète ✅
+
+**URL production** : https://rf-planner-v2.onrender.com
+**Repo GitHub** : https://github.com/mmjt2000/rf-planner-app
+**Local** : `C:\Dev\rf-planner`
+**Commit clé** : `60445c3` — "RF Planner v1.0 - Link Budget + PCI/PRACH/TAC + Voisinage"
+
+### Contexte
+
+Suite à la Section 38 (spécification RF Planner), passage à l'implémentation concrète des 4 premiers modules du SaaS RF Planner, puis déploiement en production sur Render.
+
+**Positionnement** : outil de **design et planification RF** (phase conception, avant déploiement), complémentaire aux 3 SaaS existants.
+
+### Architecture de l'écosystème RF complet
+
+| Phase | Outil | Utilisateur | Statut |
+|---|---|---|---|
+| 1. Conception | **RF Planner** | RF Planner / Architecte | ✅ **LIVE** |
+| 2. Intégration | RF Engineering 2.0 | Ingénieur NOC | ✅ Live |
+| 3. Analyse | RF Analytics | Manager RF | ✅ Live |
+| 4. Terrain | RF Optimizer Tools | Technicien field | ✅ Live |
+
+### 4 modules terminés et déployés
+
+| # | Module | Fonctionnalités |
+|---|---|---|
+| 1 | **Link Budget** | Calcul MAPL, EIRP, rayon cellule, sélection auto modèle propagation (Okumura-Hata, COST-231, ITU-R), estimation sites nécessaires |
+| 2 | **Placement des sites** | Grille hexagonale de 98 sites, couverture 100%, 0 trou, 0 overlap |
+| 3 | **PCI / PRACH / TAC** | Coloration de graphe Mod-3 / Mod-30, attribution PRACH roots sans collision, regroupement TAC par zone |
+| 4 | **Voisinage** | Détection auto dans rayon, vérification conflits PCI (OK / Mod-3 / Mod-30 / PCI identique), script multi-vendor (Huawei, Ericsson, Nokia, Samsung) |
+
+### Fichiers clés (repo rf-planner-app)
+
+**Backend Python** :
+- `serveur_simple.py` — FastAPI principal (link-budget, plan-sites, pci-planning, neighbors, sites)
+- `hexagonal.py` — génération grille hexagonale
+- `propagation.py` — modèles propagation ITU-R / COST-231
+- `requirements.txt` — fastapi, uvicorn[standard], pydantic, httpx
+
+**Frontend HTML/JS** :
+- `frontend/index.html` — Link Budget + Placement + Export CSV/GeoJSON + affichage labels/couleurs
+- `frontend/pci-planner.html` — Attribution PCI/PRACH/TAC + script vendor
+- `frontend/neighbor.html` — Détection voisins + warnings conflits + script multi-vendor
+
+**Scripts Windows** :
+- `START_SERVER.bat` — lance uvicorn
+- `START_CLIENT.bat` — ouvre Chrome
+
+### Fonctionnalités clés
+
+**Mémoire partagée entre modules** :
+- `/api/v1/plan-sites` sauvegarde les 98 sites dans `_LAST_PLANNED_SITES`
+- `/api/v1/pci-planning` enrichit les sites avec PCI/PRACH/TAC puis re-sauvegarde
+- `/api/v1/neighbors` lit les sites enrichis pour détection voisins
+- ⚠️ **La mémoire est vidée à chaque redémarrage uvicorn** (--reload)
+
+**Détection intelligente des conflits PCI** :
+- `CRITICAL` : PCI identique entre voisins
+- `HIGH` : conflit Mod-3 (PSS) — très mauvais pour la synchro
+- `MEDIUM` : conflit Mod-30 (DMRS)
+- **Les conflits sont SIGNALÉS, pas exclus** (bonne pratique RF) → warning dans le script vendor
+
+**Ordre d'exécution obligatoire** :
+1. Link Budget → Calculer → Placer les sites
+2. PCI Planner → Lancer l'attribution
+3. Voisinage → Détecter
+
+⚠️ **Ne pas sauter d'étape** : si on va directement au Voisinage après le Link Budget, tous les sites auront `PCI 0` → 30 conflits "PCI identique" faux positifs.
+
+### URL de production
+
+- Link Budget : https://rf-planner-v2.onrender.com/
+- PCI / PRACH : https://rf-planner-v2.onrender.com/pci-planner.html
+- Voisinage : https://rf-planner-v2.onrender.com/neighbor.html
+- API sites : https://rf-planner-v2.onrender.com/api/v1/sites
+- Health : https://rf-planner-v2.onrender.com/health
+
+### Commandes utiles
+
+**Local** :
+```powershell
+cd C:\Dev\rf-planner
+python -m uvicorn serveur_simple:app --host 127.0.0.1 --port 8000 --reload
+Tuer uvicorn bloqué :
+
+powershell
+Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force
+Déployer sur Render :
+
+powershell
+git add .
+git commit -m "Description"
+git push origin main
+→ Render redéploie automatiquement (2-3 min)
+
+Points de vigilance
+⚠️ Port 8000 déjà occupé → tuer les processus python avant de relancer
+
+⚠️ Mémoire vidée au redémarrage → refaire l'ordre STRICT après tout reload
+
+⚠️ Render Free = sleep 15 min → cold start ~50 s au premier appel
+
+⚠️ Rayon Voisinage par défaut = 5000 m (adapté aux 98 sites espacés de 1.35 km)
+
+⚠️ Ne pas commiter les backups (*_BACKUP*.html, *_BACKUP*.py)
+
+⚠️ UTF-8 sans BOM obligatoire (VS Code, pas PowerShell)
+
+Nettoyage à faire (post-session)
+Fichiers à supprimer dans C:\Dev\rf-planner\ :
+
+frontend/index_BACKUP.html
+
+frontend/index_BACKUP2.html
+
+serveur_simple_BACKUP.py
+
+Backlog — Modules restants (spécifiés Section 38)
+#	Module	Effort
+5	Nominal Planning (azimuth, tilt, puissance)	Moyen
+6	Simulateur de scénarios (15 vs 25 sites)	Moyen
+7	Import terrain réel (SRTM, OSM)	Élevé
+8	Sauvegarde / Chargement de scénarios	Rapide
+Bilan de la session du 15 octobre 2026
+Session très productive :
+
+✅ 4 modules RF Planner terminés et déployés
+
+✅ Backend FastAPI complet (link-budget, plan-sites, pci, neighbors, sites)
+
+✅ 3 pages frontend interactives (index, pci-planner, neighbor)
+
+✅ Mémoire partagée entre modules
+
+✅ Algorithme coloration graphe (Mod-3, Mod-30)
+
+✅ Détection conflits PCI avec warnings
+
+✅ Export CSV / GeoJSON
+
+✅ Déploiement Render réussi
+
+Le projet RF Planner est désormais en production et accessible publiquement.
+
+text
+
+---
+
+## 🎯 ÉTAPES — Suis dans l'ordre
+
+### 1️⃣ Ouvre PASSATION.md
+
+```powershell
+cd C:\Dev\rf-engineering-2-0
+code PASSATION.md
