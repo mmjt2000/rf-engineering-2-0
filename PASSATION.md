@@ -4717,14 +4717,115 @@ Session très productive :
 
 Le projet RF Planner est désormais en production et accessible publiquement.
 
-text
-
 ---
 
-## 🎯 ÉTAPES — Suis dans l'ordre
+## 52. Mise à jour du 16 octobre 2026 — NETTOYAGE DISQUE + MIGRATION PORTFOLIO
 
-### 1️⃣ Ouvre PASSATION.md
+### Statut : +50 GB libérés + Portfolio hors OneDrive ✅
 
-```powershell
-cd C:\Dev\rf-engineering-2-0
-code PASSATION.md
+### A. Contexte
+
+Deux chantiers menés en parallèle ce jour :
+1. **Urgence disque** : `C:\` ne disposait plus que de **28.3 GB libres** sur 222 GB → état critique
+2. **Migration Portfolio** : le dossier `Mon site` était dans OneDrive (`C:\Users\...\OneDrive\Escritorio\Nouveau Coulou\Mon site`) → conflits Git récurrents signalés dans les sections 40, 44, 47, 49, 50
+
+### B. Nettoyage disque C: — +50.6 GB libérés
+
+**Résultat final :**
+| Métrique | Avant | Après | Gain |
+|---|---|---|---|
+| Espace utilisé | 194.6 GB | 144 GB | **-50.6 GB** |
+| Espace libre | 28.3 GB | **78.9 GB** | **+50.6 GB** |
+
+**Actions réalisées :**
+
+| # | Action | Gain |
+|---|---|---|
+| 1 | Vider corbeille + temps (user + Windows) + cache Windows Update | ~7 GB |
+| 2 | Supprimer installateurs Downloads (OllamaSetup, PyCharm, Docker) | 3.4 GB |
+| 3 | Supprimer films >500 MB dans Downloads | ~10 GB |
+| 4 | Vider caches navigateurs (Chrome, Edge) | ~1-2 GB |
+| 5 | Désinstaller Ollama + supprimer `.ollama/` (7.19 GB de modèles) | 7.2 GB |
+| 6 | DISM `/StartComponentCleanup` (composants Windows obsolètes) | ~6-8 GB |
+| 7 | **Supprimer `C:\Archive_Outlook\archive.pst`** (16.42 GB, archive mail 2023) | **16.4 GB** |
+| 8 | Supprimer séries S01EXX + vidéos diverses Downloads | ~0.5 GB |
+| **TOTAL** | | **~50.6 GB** |
+
+**⚠️ Point critique découvert :** `archive.pst` avait été déplacé de OneDrive vers `C:\Archive_Outlook\` le même jour (pour libérer 16.8 GB de quota cloud), puis supprimé définitivement sur validation explicite du propriétaire.
+
+### C. Migration Portfolio — OneDrive → `C:\Dev\portfolio`
+
+**Contexte :** depuis plusieurs sessions (sections 40, 44, 47, 49, 50), le Portfolio dans OneDrive causait des conflits Git réguliers (fichiers virtuels, synchronisation, push bloqué).
+
+**Migration réalisée :**
+
+| Étape | Statut |
+|---|---|
+| 1. Localiser le Portfolio (`OneDrive\Escritorio\Nouveau Coulou\Mon site`) | ✅ |
+| 2. Vérifier Git status (working tree clean) | ✅ |
+| 3. Copier vers `C:\Dev\portfolio` | ✅ |
+| 4. Vérifier Git dans le nouveau dossier (branche main OK) | ✅ |
+| 5. `git pull --rebase` (récupérer les commits GitHub Actions) | ✅ fast-forward |
+| 6. Renforcer `.gitignore` (règles backups + obsoletes) | ✅ |
+| 7. `git commit + push` | ✅ `d3bd2eb` |
+| 8. Vérifier : 54 fichiers racine dans ancien = 54 dans nouveau | ✅ |
+| 9. Supprimer l'ancien dossier OneDrive | ✅ |
+
+**Résultat :**
+- ✅ Portfolio accessible dans `C:\Dev\portfolio`
+- ✅ Git fonctionne (branche `main`, synchronisé avec GitHub)
+- ✅ Aucun fichier perdu (comparaison 54/54)
+- ✅ Fini les conflits OneDrive ↔ Git
+
+**Commits clés :**
+- `d3bd2eb` — Chore: ajout regles gitignore pour backups
+- `e9975f6` — Auto-update: offres d'emploi (GitHub Actions)
+- `0e4d1f3` — Auto: LinkedIn jobs update (GitHub Actions)
+
+### D. État actuel des projets (tous hors OneDrive)
+
+| Projet | Localisation | Statut |
+|---|---|---|
+| **portfolio** | `C:\Dev\portfolio` | ✅ Migré |
+| **rf-planner** | `C:\Dev\rf-planner` | ✅ |
+| **rf-analytics** | `C:\Dev\rf-analytics` | ✅ |
+| **rf-engineering-2-0** | `C:\Dev\rf-engineering-2-0` | ✅ |
+| **rf-optimizer-tools** | `C:\Dev\rf-optimizer-tools` | ✅ |
+| **lingua-bridge-app** | `C:\Dev\lingua-bridge-app` | ✅ |
+
+**Aucun projet actif n'est plus dans OneDrive.** 🎯
+
+### E. Points de vigilance
+
+1. **⚠️ `git pull --rebase` avant tout push** sur le Portfolio (GitHub Actions pushe tous les jours à 6h UTC / 2h Montréal)
+2. **⚠️ OneDrive actif** : pause recommandée avant toute session Git longue sur les projets qui y sont encore
+3. **⚠️ Ne pas supprimer les venv** (`C:\Dev\*\venv` ou `.venv`) sans raison — ils se recréent en 2 min mais c'est fastidieux
+4. **⚠️ Fichier `.env` du Portfolio** est bien dans `.gitignore` — ne jamais commiter
+5. **⚠️ `jobs.json` et `sent_jobs.json`** sont dans `.gitignore` (déjà configuré) — ne pas modifier cette règle
+
+### F. Backlog nettoyage restant
+
+| Cible | Gain estimé | Effort |
+|---|---|---|
+| OneDrive `Photos&Videos_Family` (tri manuel) | 3.3 GB | 🟡 Moyen |
+| OneDrive `Video` (tri manuel) | 3 GB | 🟡 Moyen |
+| OneDrive `Documentos/Nouveau Coulou` (audit + tri) | inconnu | 🔴 Long |
+| AppData caches apps (Chrome, Discord, Spotify) | 3-8 GB | 🟢 Rapide |
+| `.vscode` extensions obsolètes | 1-2 GB | 🟢 Rapide |
+| **TOTAL potentiel** | **+10-16 GB** | |
+
+### G. Leçon de la session
+
+**`archive.pst` (16.4 GB) était LE fichier le plus lourd du disque** et il était caché dans `C:\Archive_Outlook` après avoir été déplacé de OneDrive. Sans l'audit systématique par taille, il serait resté invisible.
+
+**Toujours auditer par taille décroissante** avant tout nettoyage — les 5 plus gros fichiers/dossiers représentent souvent 60-80% du total.
+
+### H. Bilan de la journée
+
+- ✅ **+50.6 GB libérés** sur disque C:
+- ✅ **+16.8 GB libérés** sur quota OneDrive
+- ✅ **Portfolio migré** vers `C:\Dev\portfolio`
+- ✅ **Total ~67 GB récupérés** (disque + cloud)
+- ✅ **6 projets tous hors OneDrive**
+
+**Le disque est passé de "critique" (28 GB) à "confortable" (79 GB).** 🚀
