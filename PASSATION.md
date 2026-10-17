@@ -4977,3 +4977,162 @@ Deux chantiers menés en parallèle ce jour :
 - `ef78c8a` — Module 7
 
 **Le projet RF Planner est désormais à 7 modules sur 8. Version pro du module 7 prévue demain.**
+
+markdown
+---
+
+## 54. Mise à jour du 17 octobre 2026 — RF PLANNER v1.0 COMPLET (8/8 modules)
+
+### Statut : 🏆 RF Planner 100% terminé et déployé
+
+**URL production** : https://rf-planner-v2.onrender.com
+**Repo GitHub** : https://github.com/mmjt2000/rf-planner-app
+**Commit final** : `5499b43`
+
+### Les 8 modules du RF Planner
+
+| # | Module | URL | Commit |
+|---|---|---|---|
+| 1 | Link Budget | `/` | v1.0 |
+| 2 | Placement 98 sites | `/` (intégré) | v1.0 |
+| 3 | PCI / PRACH / TAC | `/pci-planner.html` | v1.0 |
+| 4 | Voisinage | `/neighbor.html` | v1.0 |
+| 5 | Nominal Planning | `/nominal-planner.html` | `84a58786` |
+| 6 | Simulateur de Scaling | `/scenario-simulator.html` | `84a58786` |
+| 7 | Import Terrain | `/terrain-import.html` | `ef78c8a` |
+| **8** | **Sauvegarde / Chargement** | `/scenario-manager.html` | **`ce10a71`** |
+
+### Détails Module 8 — Sauvegarde / Chargement JSON
+
+**2 nouvelles routes backend :**
+
+| Route | Méthode | Description |
+|---|---|---|
+| `/api/v1/scenario/save` | POST | Exporte tout le scénario en JSON |
+| `/api/v1/scenario/load` | POST | Recharge un scénario JSON en mémoire |
+
+**Format JSON exporté :**
+```json
+{
+  "version": "1.0",
+  "name": "chicoutimi-5g",
+  "saved_at": "2026-10-17T16:57:16Z",
+  "center": {"lat": 48.4284, "lon": -71.0656},
+  "stats": {
+    "n_sites": 98,
+    "n_pci_unique": 56,
+    "n_tac": 10
+  },
+  "sites": [...98 sites avec PCI/PRACH/TAC...]
+}
+Frontend scenario-manager.html :
+
+Bouton "💾 Télécharger le scénario JSON"
+
+Zone drag & drop pour charger un JSON
+
+Aperçu (98 sites, 56 PCI, 10 TACs)
+
+Statut mémoire en temps réel (X sites en mémoire)
+
+Avertissement "⚠️ Charger écrase la mémoire actuelle"
+
+Utilité :
+
+Persistance entre redémarrages uvicorn
+
+Partage de scénarios entre collègues
+
+Comparaison de scénarios (Chicoutimi 5G vs Saguenay 5G)
+
+Démo rapide sans refaire l'ordre STRICT
+
+Tests validés (17 octobre)
+Test	Résultat
+POST /api/v1/scenario/save	✅ 200, JSON téléchargé
+POST /api/v1/scenario/load	✅ 200, 98 sites rechargés
+Mémoire après chargement	✅ 98 sites
+PCI uniques	✅ 56
+TACs	✅ 10
+Format JSON	✅ Version, date, centre, stats
+Drag & drop	✅ Fonctionnel
+Navigation unifiée
+Lien "💾 Scénarios" ajouté dans les menus de :
+
+index.html (Link Budget)
+
+pci-planner.html
+
+neighbor.html
+
+nominal-planner.html
+
+scenario-simulator.html
+
+terrain-import.html
+
+scenario-manager.html (page elle-même)
+
+Portfolio mis à jour
+Carte "RF Planner" ajoutée dans C:\Dev\portfolio\index.html :
+
+Position : Projet 4 (après RF Analytics, avant Maryse)
+
+Thumbnail : images/projects/rf-planner-1.jpg
+
+Carrousel de 5 screenshots (fonction openGallery('rfplanner'))
+
+Lien vers https://rf-planner-v2.onrender.com
+
+Tags : Python, FastAPI, Leaflet, Chart.js, Render
+
+URL live : https://mon-site-rf.onrender.com (section Projets)
+
+Backlog restant
+#	Tâche	Priorité	Effort
+1	🅲 Module 7 avancé (SRTM + OSM + LOS)	🟡	1-2h
+2	🎨 Amélioration UX (spinners, feedback)	🟢	1h
+3	🔗 Deep-links entre modules	🟢	1h
+4	🌍 Version anglaise de l'interface	🟢	2h
+Points de vigilance
+⚠️ Ordre STRICT : Link Budget → Placer → PCI → Voisinage → Nominal → Simulateur → Terrain → Scénarios
+
+⚠️ Mémoire vidée au redémarrage uvicorn → utiliser le module 8 pour reprendre
+
+⚠️ Chargement écrase la mémoire → prévenir l'utilisateur (déjà fait dans le HTML)
+
+⚠️ Format JSON versionné ("version": "1.0") → préparer les futurs formats
+
+Bilan de la session (2 jours)
+16 octobre 2026 :
+
++50 GB libérés sur disque
+
+Portfolio migré de OneDrive → C:\Dev\portfolio
+
+Modules 5, 6, 7 livrés
+
+Section 53 PASSATION
+
+Carte RF Planner ajoutée au Portfolio
+
+17 octobre 2026 :
+
+Module 8 livré
+
+Navigation unifiée (lien Scénarios)
+
+Section 54 PASSATION
+
+🎉 RF PLANNER v1.0 — TERMINÉ
+8 modules, 100% fonctionnels, déployés en production.
+
+Le projet est prêt pour :
+
+✅ Démonstration à des recruteurs
+
+✅ Portfolio technique
+
+✅ LinkedIn showcase
+
+✅ Base pour une version commerciale
