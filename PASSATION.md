@@ -4829,3 +4829,151 @@ Deux chantiers menés en parallèle ce jour :
 - ✅ **6 projets tous hors OneDrive**
 
 **Le disque est passé de "critique" (28 GB) à "confortable" (79 GB).** 🚀
+
+---
+
+## 53. Mise à jour du 16 octobre 2026 — RF PLANNER v1.1 : Modules 5+6+7
+
+### Statut : 7 modules sur 8 opérationnels ✅
+
+**URL production** : https://rf-planner-v2.onrender.com
+**Repo GitHub** : https://github.com/mmjt2000/rf-planner-app
+**Commit clé** : `ef78c8a` — Module 7 basique (Import terrain)
+
+### Modules terminés (7/8)
+
+| # | Module | Statut | Commit |
+|---|---|---|---|
+| 1 | Link Budget | ✅ | v1.0 |
+| 2 | Placement 98 sites | ✅ | v1.0 |
+| 3 | PCI / PRACH / TAC | ✅ | v1.0 |
+| 4 | Voisinage | ✅ | v1.0 |
+| **5** | **Nominal Planning** | ✅ | `84a58786` |
+| **6** | **Simulateur de Scaling** | ✅ | `84a58786` |
+| **7** | **Import Terrain (basique)** | ✅ | `ef78c8a` |
+| 8 | Sauvegarde / Chargement | ⏳ | — |
+
+### Détails Module 5 — Nominal Planning
+
+**Fonctionnalités :**
+- 3 secteurs par site (Suburban / Rural) — azimuths 0/120/240
+- 4 secteurs par site (Urbain Dense) — azimuths 0/90/180/270
+- Visualisation **cônes d'azimuth 65°** sur la carte (standard Atoll/Planet)
+- Couleurs par secteur (S1 cyan, S2 vert, S3 ambre, S4 rouge)
+- Toggle rayons de couverture (779 m)
+- Toggle couleur par secteur
+- Tableau des 294 secteurs (98 sites × 3)
+- Script vendor multi-constructeur (Huawei/Ericsson/Nokia/Samsung)
+- Export CSV
+
+**Résultat :** 98 sites × 3 secteurs = **294 secteurs** pour Suburban.
+
+### Détails Module 6 — Simulateur de Scaling
+
+**Refonte complète :** maintenant basé sur la **baseline 98 sites** chargée automatiquement depuis `/api/v1/memory-status`.
+
+**Fonctionnalités :**
+- Baseline auto-affichée (98 sites)
+- Scénario A et B avec "+X sites" additionnels
+- Calcul automatique du total (baseline + X)
+- Résultats enrichis :
+  - Delta couverture (%)
+  - Delta capacité (Gbps)
+  - CAPEX additionnel (USD)
+  - **Coût marginal ($/Gbps)** — décision ROI
+- Graphiques radar + barres
+- Recommandation automatique basée sur le coût marginal
+
+**Exemple :** Baseline 98 sites → Scénario A (+10) = 108 sites, Scénario B (+25) = 123 sites.
+
+### Détails Module 7 — Import Terrain (basique)
+
+**Version simplifiée :** SRTM + OSM complet + LOS à venir (version pro).
+
+**Fonctionnalités actuelles :**
+- Chargement des sites planifiés depuis la mémoire (`_LAST_PLANNED_SITES`)
+- Filtre par bounding box (48.35-48.50 N, -71.15 - -70.95 W)
+- Import CSV de sites externes (format `site_id, lat, lon`)
+- Drag & drop CSV
+- Import OSM (bâtiments + forêts, mode démo)
+- Affichage sur carte : sites cyan (planifiés) + sites verts (CSV) + bâtiments/forêts
+- Reset global
+
+**Résultat test :** 86 sites planifiés chargés sur 98 (les 12 hors bbox).
+
+**Nouvelle route backend :** `POST /api/v1/terrain-import-csv` — filtre les sites dans une bbox.
+
+### Détails techniques
+
+**Backend `serveur_simple.py` — nouvelles fonctions :**
+- `POST /api/v1/nominal-planning` (v2) — retourne 3/4 secteurs par site
+- `POST /api/v1/scenario-simulator` (v2) — baseline + delta ROI
+- `POST /api/v1/terrain-import-csv` — filtre les sites dans une bbox
+
+**Frontend — fichiers modifiés :**
+- `frontend/nominal-planner.html` — refonte complète (cônes + tableau + vendor)
+- `frontend/scenario-simulator.html` — refonte complète (baseline + deltas)
+- `frontend/terrain-import.html` — refonte (CSV + OSM + sites planifiés)
+
+### Détails chiffrés — Test final 98 sites
+
+| Module | Métrique | Valeur |
+|---|---|---|
+| Link Budget | EIRP | 59 dBm |
+| Link Budget | MAPL | 128 dB |
+| Link Budget | Rayon cellule | 0.779 km |
+| Placement | Sites | 98 |
+| Placement | Couverture | 100% |
+| Placement | Overlaps | 0 |
+| PCI/PRACH | PCI uniques | 56 |
+| PCI/PRACH | TACs | 10 |
+| Voisinage | Voisins détectés (rayon 5 km) | 30 |
+| Voisinage | Conflits PCI signalés | 7 |
+| Nominal | Secteurs (3/site) | 294 |
+| Simulateur | Baseline | 98 sites |
+| Simulateur | Scénario A | +10 = 108 sites |
+| Simulateur | Scénario B | +25 = 123 sites |
+| Simulateur | Coût marginal | 171 428 $/Gbps |
+| Terrain | Sites planifiés chargés | 86 (sur 98, filtre bbox) |
+
+### Points de vigilance
+
+1. **⚠️ Ordre STRICT obligatoire** : Link Budget → Placer → PCI → Voisinage → Nominal → Simulateur → Terrain
+   - **Raison** : mémoire partagée `_LAST_PLANNED_SITES`
+   - **Symptômes si on saute une étape** :
+     - Sans Link Budget : rayon inconnu
+     - Sans Placer : 3 sites MOCK au lieu de 98
+     - Sans PCI : tous les PCI = 0 → conflits bidon
+2. **⚠️ Mémoire vidée au redémarrage uvicorn** → refaire l'ordre STRICT
+3. **⚠️ Cache Chrome** : `Ctrl+Shift+R` après chaque déploiement
+4. **⚠️ Chart.js via CDN** : `ERR_CACHE_READ_FAILURE` possible après nettoyage disque → `Ctrl+Shift+Suppr` dans Chrome
+5. **⚠️ URL PCI** : `/pci-planner.html` (tiret) — pas `/pci_planner.html` (underscore)
+
+### Backlog — Module 8
+
+**Sauvegarde / Chargement de scénarios** (15-20 min) :
+- Bouton "💾 Sauvegarder" → export JSON complet (98 sites + PCI + TAC + nominal + voisinage)
+- Bouton "📂 Charger" → recharge un scénario depuis JSON
+- Utile pour : partager un projet, reprendre après redémarrage
+
+### Version pro du module 7 (demain)
+
+**SRTM + OSM complet + LOS** (1-2h) :
+- Télécharger MNT (Modèle Numérique de Terrain)
+- Profils d'élévation sur les liens
+- Vérification LOS (Line of Sight) entre sites
+- Vraies données OSM (Overpass API)
+- Calculs de pertes par clutter réels (Walfisch-Ikegami)
+
+### Bilan de la session
+
+**3 modules livrés en une session :**
+- ✅ Module 5 : Nominal Planning (294 secteurs, cônes 65°)
+- ✅ Module 6 : Simulateur de Scaling (baseline + delta ROI)
+- ✅ Module 7 : Import Terrain (basique)
+
+**2 push réussis :**
+- `84a58786` — Modules 5+6
+- `ef78c8a` — Module 7
+
+**Le projet RF Planner est désormais à 7 modules sur 8. Version pro du module 7 prévue demain.**
