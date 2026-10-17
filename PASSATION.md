@@ -5136,3 +5136,128 @@ Le projet est prêt pour :
 ✅ LinkedIn showcase
 
 ✅ Base pour une version commerciale
+## 55. Mise à jour du 17 octobre 2026 — RF PLANNER v1.2 : Analyse LOS
+
+### Statut : Module 7b (LOS Analysis) opérationnel ✅
+
+**URL production** : https://rf-planner-v2.onrender.com
+**Repo GitHub** : https://github.com/mmjt2000/rf-planner-app
+**Commit clé** : `ce2422` — Add LOS link in navigation menu (all 7 pages)
+
+### Nouveau module : LOS Analysis
+
+**URL** : `/los-analysis.html` (ajouté dans la navigation de toutes les pages)
+
+**Fonctionnalités :**
+- **Sélection de 2 sites** : dropdown A/B ou clic direct sur la carte
+- **Calcul LOS** avec 3 niveaux :
+  1. Élévation SRTM 30m (via Open-Elevation API)
+  2. Ligne de vue directe (entre les 2 antennes à 30m)
+  3. Zone de Fresnel (60% de clearance minimum)
+- **Statut** : `✅ LOS OK` (vert) ou `❌ Obstrué` (rouge)
+- **Ligne colorée sur la carte** : verte (OK) / rouge pointillée (obstrué)
+- **Profil d'élévation** : graphique Chart.js avec terrain + antennes
+- **Métriques détaillées** :
+  - Distance (km)
+  - Élévation du milieu (m)
+  - Ligne de vue (m)
+  - Clearance (m) — négatif = obstrué
+  - Zone Fresnel (m)
+
+### Formule utilisée
+
+**Rayon de Fresnel (1ère zone) :**
+r = 17.32 × √((d1 × d2) / (f × d_total))
+
+text
+Où :
+- `d1`, `d2` = distances (km) depuis le milieu vers A et B
+- `f` = fréquence (GHz) — 3.5 GHz par défaut
+- `d_total` = distance totale (km)
+
+**Condition LOS OK :**
+clearance = ligne_de_vue - elevation_milieu
+LOS_OK = clearance > (0.6 × fresnel_radius)
+
+text
+
+### Nouvelles routes backend
+
+| Route | Méthode | Description |
+|---|---|---|
+| `/api/v1/los-analysis` | POST | Analyse LOS entre 2 sites |
+
+**Exemple de requête :**
+```json
+{"site_a": "SITE_009", "site_b": "SITE_008"}
+Exemple de réponse :
+
+json
+{
+  "site_a": {
+    "id": "SITE_009",
+    "lat": 48.4284,
+    "lon": -71.0656,
+    "elevation_m": 91.0,
+    "antenna_m": 121.0
+  },
+  "site_b": {
+    "id": "SITE_008",
+    "lat": 48.4162,
+    "lon": -71.0929,
+    "elevation_m": 91.2,
+    "antenna_m": 121.2
+  },
+  "distance_km": 4.859,
+  "elevation_mid_m": 7.17,
+  "line_of_sight_m": 75.9,
+  "clearance_m": 68.7,
+  "fresnel_radius_m": 10.2,
+  "los_ok": true,
+  "status": "✅ LOS OK"
+}
+Détails techniques
+APIs externes utilisées :
+
+API	URL	Usage
+Open-Elevation	https://api.open-elevation.com/api/v1/lookup	Élévation SRTM 30m
+Overpass	https://overpass-api.de/api/interpreter	Bâtiments + forêts (module 7)
+Fallback : si Open-Elevation est down → élévation = 0m (pas de crash).
+
+Tests validés :
+
+Test	Résultat
+SITE_009 → SITE_008 (4.86 km)	✅ LOS OK (clearance 68.7m)
+SITE_006 → SITE_008 (2.70 km)	✅ Obstrué (clearance -0.5m)
+Profil d'élévation	✅ Affiché
+Ligne sur carte	✅ Verte / rouge
+RF Planner v1.2 — Bilan complet
+#	Module	Statut	Commit
+1	Link Budget	✅	v1.0
+2	Placement 98 sites	✅	v1.0
+3	PCI / PRACH / TAC	✅	v1.0
+4	Voisinage	✅	v1.0
+5	Nominal Planning	✅	84a58786
+6	Simulateur de Scaling	✅	84a58786
+7	Import Terrain (basique)	✅	ef78c8a
+7b	LOS Analysis (avancé)	✅	fe04c48
+8	Sauvegarde / Chargement	✅	ce10a71
+BONUS	Navigation unifiée (9 pages)	✅	ce2422
+→ RF Planner v1.2 : 10 fonctionnalités majeures, toutes opérationnelles. 🏆
+
+Points de vigilance
+⚠️ Open-Elevation API peut être down → fallback élévation = 0m
+
+⚠️ Lenteur réseau : 2-5 sec par analyse LOS (3 appels API)
+
+⚠️ Ordre STRICT : Link Budget → Placer → PCI → LOS (la mémoire doit être chargée)
+
+⚠️ Mémoire vidée au reload uvicorn → refaire l'ordre STRICT après chaque modif backend
+
+Backlog restant
+#	Tâche	Priorité
+1	Cache des élévations (éviter les appels répétés)	🟢
+2	Analyse LOS en batch (tous les voisins d'un site)	🟢
+3	Export CSV des résultats LOS	🟢
+4	Version anglaise de l'interface	🟢
+5	Vidéo démo RF Planner	🟡
