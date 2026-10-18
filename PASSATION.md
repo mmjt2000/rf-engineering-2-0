@@ -5392,3 +5392,49 @@ Impact :
 💼 CV : "IA appliquée au RF (Groq/Llama)" = différenciateur
 
 🎯 Démo : "Pose n'importe quelle question RF au Copilot" = effet wow
+
+---
+
+## 57. Mise à jour du 18 octobre 2026 — État réel et points critiques (pour nouvel assistant)
+
+### ⚠️ AVERTISSEMENT
+Cette session a été marquée par de nombreuses erreurs de ma part (assistant IA). Le travail sur `jobs.html` et le tracker est **incomplet et fragile**. Le fichier local `C:\Dev\portfolio\jobs.html` ne contient **pas** les offres (il est vide). Le fichier qui fonctionnait avec les 3 onglets et les boutons "Préparer" **n'a jamais été pushé** sur GitHub ni déployé sur Render. Il est perdu.
+
+### 📂 État des fichiers (18/10/2026)
+
+| Fichier | État | Remarques |
+|---|---|---|
+| `C:\Dev\portfolio\jobs.html` | ❌ Vide (squelette) | Contient les 3 onglets mais aucune offre. Ne pas utiliser tel quel. |
+| `C:\Dev\portfolio\jobs_EN_LIGNE.html` | ✅ Fonctionnel | Récupéré depuis Render. Contient les 3 onglets + les offres (12 RF + 30 LinkedIn). **C'est la base de travail.** |
+| `C:\Dev\portfolio\tracker.html` | ✅ Fonctionnel | Kanban 4 colonnes avec confettis. Fonctionne sur `http://127.0.0.1:8500`. |
+| `C:\Dev\portfolio\tracker_server.py` | ✅ Fonctionnel | FastAPI sur port 8500. Lit/écrit `tracker.json`. |
+| `C:\Dev\portfolio\tracker.json` | ⚠️ Contient des tests | À vider : `[System.IO.File]::WriteAllText("...", '{"applications": []}', ...)` |
+
+### 🎯 Ce qui reste à faire (pour un nouvel assistant)
+
+1. **Reconstruire `jobs.html`** à partir de `jobs_EN_LIGNE.html` (qui contient les offres) en y ajoutant :
+   - Le score sur LinkedIn (calculé en JS)
+   - Le tri par score décroissant
+   - Les boutons "Préparer" sur RF, Admin, et LinkedIn (score ≥ 50)
+   - L'appel à `saveToTracker` qui envoie au serveur `http://127.0.0.1:8500/api/add_job`
+   
+2. **Tester en local** avant tout push.
+
+3. **Pusher sur GitHub** (`C:\Dev\portfolio`) puis vérifier sur Render (`https://mon-site-rf.onrender.com/jobs.html`).
+
+### 🔴 Points critiques à ne pas oublier
+
+- **`tracker_server.py` ne peut pas tourner sur Render** (site statique). Le tracker est **local uniquement** (`http://127.0.0.1:8500`).
+- **Le fichier `tracker.json` a eu un problème d'encodage BOM UTF-8.** Utiliser `encoding="utf-8-sig"` dans `load_tracker()` et `save_tracker()`.
+- **Le fichier `jobs.html` ne doit JAMAIS être remplacé par un squelette vide.** Toujours partir de `jobs_EN_LIGNE.html` (qui contient les offres) et ajouter le JS à la fin.
+- **Les offres sont injectées par GitHub Actions** dans `jobs.html` entre les marqueurs `<!-- RF_JOBS_START -->` et `<!-- RF_JOBS_END -->`. Ne pas toucher à ces marqueurs.
+
+### 📝 Autres projets (inchangés)
+
+- RF Planner : 11 modules, live sur `https://rf-planner-v2.onrender.com`
+- RF Analytics, RF Engineering, RF Optimizer, Lingua Bridge : inchangés
+- Portfolio : live sur `https://mon-site-rf.onrender.com`
+
+### 🙏 Message pour le prochain assistant
+
+L'utilisateur a perdu confiance à cause de nombreuses erreurs. **Ne pas lui donner de blocs de code à copier-coller sans avoir testé.** Ne pas remplacer des fichiers fonctionnels par des squelettes. Ne pas promettre de "mémoire automatique" sans l'avoir testée. Travailler par étapes courtes, vérifiables, avec des captures d'écran à chaque étape.
