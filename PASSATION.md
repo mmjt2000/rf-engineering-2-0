@@ -5261,3 +5261,134 @@ Backlog restant
 3	Export CSV des résultats LOS	🟢
 4	Version anglaise de l'interface	🟢
 5	Vidéo démo RF Planner	🟡
+---
+
+## 56. Mise à jour du 17 octobre 2026 (soir) — RF PLANNER v1.3 : RF Copilot IA
+
+### Statut : Module Copilot opérationnel ✅
+
+**URL production** : https://rf-planner-v2.onrender.com
+**Repo GitHub** : https://github.com/mmjt2000/rf-planner-app
+**Commit clé** : à compléter après push
+
+### Nouveau module : RF Copilot IA
+
+**URL** : `/copilot.html` (ajouté dans la navigation)
+
+**Fonctionnalités :**
+- Interface chat professionnelle (style ChatGPT)
+- **Modèle IA** : `openai/gpt-oss-120b` via Groq API
+- **Contexte injecté** : 98 sites, PCI, TAC, conflits détectés
+- **Historique de conversation** : 10 derniers échanges
+- **Suggestions prédéfinies** : 5 questions types
+- **Format Markdown** : code blocks, bold, listes
+
+**Exemples de questions :**
+- *"Combien de sites sont en mémoire ?"* → réponse précise (98)
+- *"Quels sites ont des conflits PCI ?"* → détection Mod-3/Mod-30
+- *"Génère un script Huawei"* → script avec vraies données
+- *"Explique la différence entre Mod-3 et Mod-30"* → pédagogie
+
+### Route backend
+
+**`POST /api/v1/copilot/ask`**
+
+**Requête :**
+```json
+{
+  "question": "Combien de sites sont en mémoire ?",
+  "history": [
+    {"role": "user", "content": "..."},
+    {"role": "assistant", "content": "..."}
+  ]
+}
+Réponse :
+
+json
+{
+  "answer": "Il y a 98 sites en mémoire.",
+  "model": "openai/gpt-oss-120b",
+  "tokens_used": 245,
+  "source": "groq"
+}
+Configuration
+.env requis :
+
+text
+GROQ_API_KEY=gsk_...
+⚠️ .env est dans .gitignore — ne jamais commiter.
+
+Détails techniques
+Modèles Groq disponibles (2026) :
+
+openai/gpt-oss-120b — recommandé (qualité + perf)
+
+openai/gpt-oss-20b — plus rapide
+
+qwen/qwen3.6-27b — multimodal (preview)
+
+⚠️ Le modèle llama-3.3-70b-versatile a été retiré par Groq le 16 août 2026.
+
+Tests validés
+Test	Résultat
+"Combien de sites ?"	✅ 98 sites
+"Quels sites ont des conflits PCI ?"	✅ Détection liste
+Script Huawei généré	✅ Fonctionnel
+Historique conversation	✅ Mémorisé
+Format Markdown	✅ Code blocks OK
+Error handling (clé invalide)	✅ Message clair
+Bilan de la session (17 octobre 2026)
+Matin :
+
+Module 8 (Sauvegarde JSON)
+
+Navigation unifiée
+
+Section 54 PASSATION
+
+Après-midi :
+
+Module 7b (LOS Analysis)
+
+Section 55 PASSATION
+
+Soir :
+
+Module Copilot IA (Groq + Llama/gpt-oss)
+
+Section 56 PASSATION
+
+RF Planner v1.3 — Bilan complet
+#	Module	Statut
+1 à 8	(voir sections 53-54)	✅
+7b	LOS Analysis	✅
+9	Sauvegarde / Chargement	✅
+11	RF Copilot IA	✅ NOUVEAU
+Bonus	Navigation unifiée (10 pages)	✅
+Points de vigilance
+⚠️ Clé Groq dans .env — jamais commiter
+
+⚠️ Coût API : gratuit jusqu'à 30 req/min sur Groq
+
+⚠️ Contexte limité : max 8192 tokens (Groq a un contexte plus large, mais on limite pour économiser)
+
+⚠️ Modèle déprécié : llama-3.3-70b retiré → utiliser openai/gpt-oss-120b
+
+⚠️ Mémoire vidée au reload : refaire l'ordre STRICT avant d'utiliser le Copilot
+
+Backlog restant (optionnel)
+#	Tâche	Effort
+1	Enrichir contexte (conflits PCI détaillés)	30 min
+2	Auth JWT multi-tenant	3-4h
+3	PostgreSQL persistence	3-4h
+4	Heatmap RSRP sur la carte	4-6h
+Le moment Copilot (17 octobre, 19h)
+C'est un jalon majeur : RF Planner a maintenant un assistant IA.
+
+Impact :
+
+📸 LinkedIn : "RF Planner + Copilot IA" = argument fort
+
+💼 CV : "IA appliquée au RF (Groq/Llama)" = différenciateur
+
+🎯 Démo : "Pose n'importe quelle question RF au Copilot" = effet wow
