@@ -5438,3 +5438,45 @@ Cette session a été marquée par de nombreuses erreurs de ma part (assistant I
 ### 🙏 Message pour le prochain assistant
 
 L'utilisateur a perdu confiance à cause de nombreuses erreurs. **Ne pas lui donner de blocs de code à copier-coller sans avoir testé.** Ne pas remplacer des fichiers fonctionnels par des squelettes. Ne pas promettre de "mémoire automatique" sans l'avoir testée. Travailler par étapes courtes, vérifiables, avec des captures d'écran à chaque étape.
+
+---
+
+## 58. Mise à jour du 29 octobre 2026 — LINGUA BRIDGE : Ouverture aux étudiants
+
+### Statut : Pratique IA ouverte à tous les étudiants ✅
+
+### A. Contexte
+L'application Lingua Bridge (Streamlit) était bloquée sur le profil d'Ingrid. Les prompts envoyés à l'IA (Groq) contenaient des noms hardcodés ("Ingrid, Maryse, Laeticia") et supposaient que l'étudiant était forcément une fille hispanophone. L'objectif était de :
+1. Rendre la partie "Étudiant" générique et ouverte à n'importe qui.
+2. Retirer Ingrid des prompts de l'IA.
+3. Conserver l'accès spécial pour Maryse et Laeticia (Invitées).
+
+### B. Modifications dans le code
+**Fichier modifié** : `voice_module.py` (seul fichier touché, `app.py` était déjà dynamique).
+
+- **`LANG_CONFIG`** : Nettoyage des textes, suppression des références genrées.
+- **`get_adaptive_prompt()`** : 
+  - L'IA s'adresse maintenant à `{student_name}` (variable dynamique).
+  - Les mentions "étudiante hispanophone" ont été remplacées par "étudiant" et "langue maternelle".
+  - Les pronoms "elle" ont été neutralisés.
+- **`TOPICS` (Scénarios)** : Tous les textes (Restaurant, Médecin, etc.) ont été neutralisés (ex: "L'étudiant est le client" au lieu de "Elle est la cliente").
+- **Nettoyage** : Suppression de lignes de code dupliquées dans `render_free_conversation()`.
+
+### C. Gestion des utilisateurs (Base de données)
+- **Aucun changement de code nécessaire**. L'authentification lit directement le Google Sheets via `sheets_db.py`.
+- **Pour ajouter un étudiant** : Ajouter une ligne dans Google Sheets avec le rôle `student`.
+- **Pour Maryse et Laeticia** : Leur rôle reste inchangé (ex: `guest`), elles conservent leur menu dédié et leur bouton "Accéder à mon application".
+
+### D. Tests validés
+- ✅ Login avec un nouveau compte "Étudiant Test" (créé dans Google Sheets) → Succès.
+- ✅ L'IA utilise le bon prénom dans ses réponses.
+- ✅ Les scénarios (Restaurant, Aéroport, etc.) fonctionnent au masculin/féminin sans bug.
+- ✅ Streamlit Cloud a bien redéployé après le `git push`.
+
+### E. Commit clé (repo lingua-bridge-app)
+- `Fix: ouverture de la pratique IA a tous les etudiants`
+
+### F. Points de vigilance
+1. **Google Sheets est le panneau d'administration** : C'est toi (le prof) qui crées les comptes en ajoutant des lignes.
+2. Le `secrets.toml` local est toujours manquant → l'app plantera au login en local. Utiliser Streamlit Cloud pour tester, ou créer le `secrets.toml` un jour.
+3. Le venv local est en Python 3.12.9 (ne pas utiliser Python 3.14).
